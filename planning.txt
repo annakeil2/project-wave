@@ -1,0 +1,20 @@
+Message in a Bottle App 
+Aim is to provide facilitators of all kinds of events, such as workshops, classes, speeches, an easy and gamified way to break the ice and make participants add as well as 
+receive an anonymous message from another participant in the session. 
+
+# Users
+Superuser
+Facilitator
+Participants
+
+# Session 
+Jamboree: PulseCheck_Enabled, Bottles_Enabled
+Bottles
+Release
+
+# Icebreaker
+Facilitator creates prompt before a jamboree and participants can add their messages that are sent to another particant radomly, in an anomymous way.
+# PulseCheck
+When the facilitator enables this feature, participants can send input that is directly sent to main screen 
+# FollowUp
+Facilitator can opt for sending input form to all participants who 
