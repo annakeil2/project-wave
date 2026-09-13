@@ -1,6 +1,6 @@
 Message in a Bottle App 
 Aim is to provide facilitators of all kinds of events, such as workshops, classes, speeches, an easy and gamified way to break the ice and make participants add as well as 
-receive an anonymous message from another participant in the session. 
+receive an anonymous message from another participant in the session. The recipient does not see who sent the Bottle.
 
 # Users
 Superuser
@@ -8,13 +8,88 @@ Facilitator
 Participants
 
 # Session 
-Jamboree: PulseCheck_Enabled, Bottles_Enabled
+Wave: PulseCheck_Enabled, Bottles_Enabled
 Bottles
 Release
 
+## Types of Interaction via bottle messages
 # Icebreaker
 Facilitator creates prompt before a jamboree and participants can add their messages that are sent to another particant radomly, in an anomymous way.
 # PulseCheck
-When the facilitator enables this feature, participants can send input that is directly sent to main screen 
+When the facilitator enables this feature, participants can send input that is directly sent to main screen.
 # FollowUp
-Facilitator can opt for sending input form to all participants who 
+Facilitator can opt for sending input form to all participants who signed up with their email address.
+
+
+# First version
+
+# Facilitator
+Sign in
+Create Wave
+Give the Wave a name
+Create an Icebreaker question
+Get a QR code + join code
+See participants joining
+Start collecting Bottles
+Release Bottles
+End Wave
+
+# Participant
+Scan QR code
+Enter name
+Join Wave
+Receive the Icebreaker
+Write their message
+Submit
+Wait for Release
+Open their anonymous Bottle
+
+
+# Facilitator
+id
+display_name
+email 
+password
+password reset
+joined_at
+email_confirmed
+
+
+# Participant
+id
+display_name
+email (optional)
+joined_at
+wave_id
+requested_follow-up
+
+# Bottle
+id
+wave_id
+sender_id
+recipient_id
+message
+type (bottle_exchange, pulse_check)
+created_at
+image_url
+
+# Announcement
+id
+wave_id
+sender_id
+created_at
+prompt
+image_url
+request_input (bottle_exchange, pulse_check, null)
+
+
+# Wave
+id
+name
+created_at
+facilitator_id
+event_date
+completed
+enable_pulse_check
+enable_bottle_exchange
+deleted_date
