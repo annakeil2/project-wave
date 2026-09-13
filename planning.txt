@@ -71,7 +71,7 @@ recipient_id
 message
 type (bottle_exchange, pulse_check)
 created_at
-image_url
+is_flagged
 
 # Announcement
 id
@@ -90,6 +90,6 @@ created_at
 facilitator_id
 event_date
 completed
-enable_pulse_check
-enable_bottle_exchange
+input_status (null, bottle_exchange, pulse_check)
 deleted_date
+moderation_type (null, ai_moderation)
