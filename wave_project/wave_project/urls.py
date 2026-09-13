@@ -1,8 +1,8 @@
 """
-URL configuration for wave_project project.
+URL configuration for training_tracker project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.1/topics/http/urls/
+    https://docs.djangoproject.com/en/4.2/topics/http/urls/
 Examples:
 Function views
     1. Add an import:  from my_app import views
@@ -15,8 +15,39 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, re_path
+from wave_project import views
+from django.contrib.auth import views as auth_views
+from django.conf import settings
+from django.conf.urls.static import static
+from django.views.generic.base import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-]
+    path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('account_details/', views.account_details, name='account_details'),
+    path('registration/', views.registration, name='registration'),
+    path(
+        'password_reset/',
+        auth_views.PasswordResetView.as_view(template_name='password_reset.html'),
+        name='password_reset'
+    ),
+    path('password_reset/done/',
+         auth_views.PasswordResetDoneView.as_view(
+             template_name='password_reset_done.html'
+         ),
+         name='password_reset_done'),
+     
+    path('reset/<uidb64>/<token>/',
+         auth_views.PasswordResetConfirmView.as_view(
+             template_name='password_reset_confirm.html'
+         ),
+         name='password_reset_confirm'),
+     
+    path('reset/done/',
+         auth_views.PasswordResetCompleteView.as_view(
+             template_name='password_reset_complete.html'
+         ),
+         name='password_reset_complete'), 
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
