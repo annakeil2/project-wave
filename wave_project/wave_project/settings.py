@@ -38,7 +38,7 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
-    'wave_project.apps.WaveConfig',
+    'wave_app.apps.WaveAppConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -143,7 +143,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Posted by aircraft, modified by community. See post 'Timeline' for change history
 # Retrieved 2026-08-09, License - CC BY-SA 4.0
 
-AUTH_USER_MODEL = 'wave_app.User'
+AUTH_USER_MODEL = 'wave_app.WaveUser'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'

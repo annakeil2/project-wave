@@ -25,15 +25,14 @@ class Wave(models.Model):
     event_date = models.DateTimeField()
     completed = models.BooleanField()
     input_type = models.IntegerField(
+        """" TODO: Allow multiple input types """
         choices=INPUT_TYPE.items(),
-        Null = True, 
-        Blank = True
+        default=0
     )
     deleted_date = models.DateTimeField(null=True, blank=True)
     moderation_type = models.IntegerField(
         choices=INPUT_TYPE.items(),
-        Null = True, 
-        Blank = True
+        default=0
     )
     
 
@@ -46,8 +45,7 @@ class Bottle (models.Model):
     message = models.CharField(max_length=1500000)
     input_type = models.IntegerField(
         choices=INPUT_TYPE.items(),
-        Null = True, 
-        Blank = True
+        default=0
     )
     created_at = models.DateTimeField(auto_now_add=True)
     is_flagged = models.BooleanField()
@@ -62,8 +60,7 @@ class Announcement(models.Model):
     prompt = models.CharField(max_length=1500000)
     request_input_type = models.IntegerField(
         choices=INPUT_TYPE.items(),
-        Null = True, 
-        Blank = True
+        default=0
     )
 
 
@@ -89,7 +86,7 @@ class WaveUser(AbstractUser):
 
 
 class FacilitatorManager(BaseUserManager):
-    """ Methods for creating wave users """
+    """ Methods for creating facilitators """
     
     def create_user(self, email, password=None):
         """ Create a non-super user """
@@ -101,17 +98,6 @@ class FacilitatorManager(BaseUserManager):
         )
 
         user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-
-    def create_superuser(self, email, password=None):
-        """ Create and save a superuser with administrator privileges """
-        user = self.create_user(
-            email,
-            password=password,
-        )
-        user.is_admin = True
         user.save(using=self._db)
         return user
 
@@ -128,6 +114,26 @@ class Facilitator(WaveUser):
         
     def __str__(self):
         return f"Facilitator({self.id}, {self.username})"
+
+
+
+class ParticipantManager(BaseUserManager):
+    """ Methods for creating wave participants """
+    
+    def create_user(self, email=None, password=None):
+        """ Create a non-super user """
+        if not email:
+            user = self.model(
+                email=None
+           )
+        else: 
+            user = self.model(
+                email=self.normalize_email(email),
+            )
+
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
 
 
 class Participant(WaveUser):

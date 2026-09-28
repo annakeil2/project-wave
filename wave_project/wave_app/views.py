@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 
-from .models import Training, Message, Employee
+from .models import Wave, Bottle, Announcement, Facilitator, Participant
 from django.conf import settings
 from .forms import TrainingForm, MessageForm, EmployeeForm, RegistrationForm
 from . import services
