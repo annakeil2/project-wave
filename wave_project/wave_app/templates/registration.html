@@ -1,0 +1,28 @@
+{% extends "logged_out_base.html" %}
+
+{% block title %}Register{% endblock %}
+
+{% block page_title %}Register{% endblock %}
+
+{% block content %}
+
+<h2>Register</h2>
+
+{% if result %}
+    <p class="form_result">
+        {{ result }}
+    </p>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+
+{{ form.as_p }}
+
+<button type="submit">
+    Save
+</button>
+
+</form>
+
+{% endblock %}
