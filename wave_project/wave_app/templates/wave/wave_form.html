@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Add New Wave{% endblock %}
+
+{% block page_title %}Add New Wave{% endblock %}
+
+{% block content %}
+
+<h2>Add New Wave</h2>
+
+<form method="post">
+    {% csrf_token %}
+
+{{ form.as_p }}
+
+<button type="submit">
+    Save Wave
+</button>
+
+</form>
+
+{% endblock %}

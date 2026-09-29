@@ -9,6 +9,14 @@ INPUT_TYPE = {
     BOTTLE_EXCHANGE: "Bottle exchange",
     PULSE_CHECK: "Pulse check",
 }
+
+FACILITATOR = 1
+PARTICIPANT = 2   
+USER_TYPE = {
+    FACILITATOR: "Facilitator",
+    PARTICIPANT: "Participant",
+}
+
     
 class Wave(models.Model):
     """"A session the facilitator creates"""
@@ -23,7 +31,7 @@ class Wave(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     facilitator_id = models.IntegerField()
     event_date = models.DateTimeField()
-    completed = models.BooleanField()
+    completed = models.BooleanField(default=False)
     input_type = models.IntegerField(
         """" TODO: Allow multiple input types """
         choices=INPUT_TYPE.items(),
@@ -62,14 +70,6 @@ class Announcement(models.Model):
         choices=INPUT_TYPE.items(),
         default=0
     )
-
-
-FACILITATOR = 1
-PARTICIPANT = 2   
-USER_TYPE = {
-    FACILITATOR: "Facilitator",
-    PARTICIPANT: "Participant",
-}
 
 
 class WaveUser(AbstractUser):

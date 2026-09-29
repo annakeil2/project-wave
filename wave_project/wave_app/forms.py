@@ -71,31 +71,64 @@ class WaveForm(forms.ModelForm):
 #         ]
 
 
-# class RegistrationForm(forms.ModelForm):
-#     """A form for registering a new employee account."""
-#     password = forms.CharField(label="Password", widget=forms.PasswordInput)
-#     def __init__(self, *args, **kwargs):
-#         """Initialise the form and make the email field required."""
-#         super(RegistrationForm, self).__init__(*args, **kwargs)
-#         self.fields['email'].required = True
+class FacilitatorRegistrationForm(forms.ModelForm):
+    """ A form for registering a new facilitator account """
+    password = forms.CharField(label="Password", widget=forms.PasswordInput)
+    def __init__(self, *args, **kwargs):
+        """Initialise the form and make the email field required."""
+        super(FacilitatorRegistrationForm, self).__init__(*args, **kwargs)
+        self.fields['email'].required = True
     
        
-#     class Meta:
-#         model = Employee
+    class Meta:
+        model = Facilitator
 
-#         fields = [
-#             'username',
-#             'first_name',
-#             'last_name',
-#             'email',
-#             'password'
-#         ]
+        fields = [
+            'username',
+            'first_name',
+            'last_name',
+            'email',
+            'password'
+        ]
     
     
-#     def save(self, commit=True):
-#         """Create the employee and securely hash their password."""
-#         user = super().save(commit=False)
-#         user.set_password(self.cleaned_data["password"])
-#         if commit: 
-#             user.save()
-#         return user
+    def save(self, commit=True):
+        """Create the facilitator and securely hash their password."""
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password"])
+        if commit: 
+            user.save()
+        return user
+    
+    
+class ParticipantRegistrationForm(forms.ModelForm):
+    """ A form for registering a new participant account """
+    password = forms.CharField(label="Password", widget=forms.PasswordInput)
+    wave_id = forms.IntegerField(widget=forms.HiddenInput())
+    def __init__(self, wave_id, *args, **kwargs):
+        """ Initialise the form and make the email field optional """
+        super(ParticipantRegistrationForm, self).__init__(*args, **kwargs)
+        self.fields['email'].required = False
+        self.fields['wave_id'].initial = wave_id
+    
+       
+    class Meta:
+        model = Participant
+
+        fields = [
+            'wave_id',
+            'username',
+            'first_name',
+            'last_name',
+            'email',
+            'password'
+        ]
+    
+    
+    def save(self, commit=True):
+        """Create the facilitator and securely hash their password."""
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password"])
+        if commit: 
+            user.save()
+        return user
