@@ -26,8 +26,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    path('account_details/', views.account_details, name='account_details'),
-    path('registration/', views.registration, name='registration'),
+    # path('account_details/', views.account_details, name='account_details'),
+    path('facilitator_registration/', views.registration_facilitator, name='facilitator_registration'),
+    path('wave/registration/', views.registration_participant, name='wave_registration'),
     path(
         'password_reset/',
         auth_views.PasswordResetView.as_view(template_name='password_reset.html'),

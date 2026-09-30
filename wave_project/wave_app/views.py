@@ -2,29 +2,24 @@ from django.shortcuts import render, redirect
 
 from .models import Wave, Bottle, Announcement, Facilitator, Participant, FACILITATOR
 from django.conf import settings
-from .forms import WaveForm, MessageForm, EmployeeForm, RegistrationForm
-from . import services
+from .forms import WaveForm, FacilitatorRegistrationForm, ParticipantRegistrationForm
+# from . import services
 from django.utils import timezone
 
 
-# def training_self(request):
-#     """Display the logged in user's training records and training hour totals."""
-#     if request.user.is_authenticated:
-#         user_id = request.user.id
-#         user_trainings = Training.objects.filter(user_id=user_id)
-#         total = services.get_total_number_of_training_hours(user_trainings)
-#         ongoing_training = services.get_ongoing_training_hours(user_trainings)
-#         completed_training = services.get_completed_training_hours(user_trainings)
-#         context = {
-#             "user_id": user_id,
-#             "trainings": user_trainings,
-#             "total_training": total,
-#             "ongoing_training": ongoing_training,
-#             "completed_training": completed_training
-#         }
-#         return render(request, "training/training_list.html", context)
-#     else:
-#         return redirect(f"{settings.LOGIN_URL}?next={request.path}")
+def my_waves(request):
+    """ Display the logged in facilitators's wave records """
+    if request.user.is_authenticated and request.user.user_type == FACILITATOR:
+        facilitator_id = request.user.id
+        my_waves = Wave.objects.filter(facilitator_id=facilitator_id)
+        participants = my_waves.participant_set.all()
+        context = {
+            "facilitator_id": facilitator_id,
+            "my_waves": my_waves,
+        }
+        return render(request, "wave/my_waves.html", context)
+    else:
+        return redirect(f"{settings.LOGIN_URL}?next={request.path}")
     
    
 # def training_user(request, user_id):
@@ -207,18 +202,18 @@ def wave_form(request):
     
 
 def registration_facilitator(request):
-    """Display the registration form and create a new employee account."""
+    """ Display the registration form and create a new facilitator account """
     if request.user.is_authenticated == False:
         result = None
         if request.method == 'POST':
-            form = RegistrationForm(request.POST)
+            form = FacilitatorRegistrationForm(request.POST)
     
             if form.is_valid():
                 employee = form.save()
                 return redirect(f"/training/")
         
         else:
-            form = RegistrationForm()
+            form = FacilitatorRegistrationForm()
         
         return render(
             request,
@@ -226,4 +221,30 @@ def registration_facilitator(request):
             {'form': form, 'result': result}
         )
     else:
+        """ TODO: Fix redirect """
+        return redirect(f"/training/")
+    
+    
+def registration_participant(request):
+    """ Display the registration form and create a new participant account """
+    wave_id = request.GET.get('wave_id', None)
+    if request.user.is_authenticated == False and wave_id != None:
+        result = None
+        if request.method == 'POST':
+            form = ParticipantRegistrationForm(wave_id, request.POST)
+    
+            if form.is_valid():
+                employee = form.save()
+                return redirect(f"/training/")
+        
+        else:
+            form = ParticipantRegistrationForm()
+        
+        return render(
+            request,
+            'registration.html',
+            {'form': form, 'result': result}
+        )
+    else:
+        """ TODO: Fix redirect """
         return redirect(f"/training/")

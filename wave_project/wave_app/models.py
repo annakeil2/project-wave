@@ -19,7 +19,7 @@ USER_TYPE = {
 
     
 class Wave(models.Model):
-    """"A session the facilitator creates"""
+    """A session the facilitator creates"""
     
     AI_MODERATION = 1  
     MODERATION_TYPE = {
@@ -32,8 +32,8 @@ class Wave(models.Model):
     facilitator_id = models.IntegerField()
     event_date = models.DateTimeField()
     completed = models.BooleanField(default=False)
+    """ TODO: Allow multiple input types """
     input_type = models.IntegerField(
-        """" TODO: Allow multiple input types """
         choices=INPUT_TYPE.items(),
         default=0
     )
@@ -72,6 +72,23 @@ class Announcement(models.Model):
     )
 
 
+class WaveUserManager(BaseUserManager):
+    """ Methods for creating superusers """
+    
+    def create_superuser(self, email, password, **kwargs):
+        """Create and save a superuser with administrator privileges."""
+        user = self.model(
+            email=self.normalize_email(email),
+            user_type=FACILITATOR, 
+            is_staff=True, 
+            is_superuser=True,
+            **kwargs
+        )
+        user.set_password(password) 
+        user.save(using=self._db)
+        return user
+
+
 class WaveUser(AbstractUser):
     """ A user inherited from both facilitator and participant """
 
@@ -80,10 +97,11 @@ class WaveUser(AbstractUser):
     user_type = models.IntegerField(
         choices=USER_TYPE.items(),
     )
+    objects = WaveUserManager()
 
     def __str__(self):
         return f"WaveUser({self.id}, {self.username})"
-
+    
 
 class FacilitatorManager(BaseUserManager):
     """ Methods for creating facilitators """
@@ -139,7 +157,13 @@ class ParticipantManager(BaseUserManager):
 class Participant(WaveUser):
     """ A participant is a user who belongs to a specific wave """
     wave_id = models.IntegerField()
+    wave = models.ForeignKey(
+        'Wave',
+        on_delete=models.CASCADE,
+    )
     requested_follow_up = models.BooleanField()
+    
+    objects = ParticipantManager()
     
     def __init__(self):
         self.user_type = PARTICIPANT

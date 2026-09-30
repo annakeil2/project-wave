@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% comment %} {% load display_training_type %}
+{% load display_training_status %} {% endcomment %}
+
+{% block title %}My Wave Dashboard{% endblock %}
+
+{% block page_title %}
+Dashboard
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="welcome-section mb-4">
+
+        <div>
+            <p>
+                All your wave activities.
+            </p>
+        </div>
+
+        <a href="{% url 'training_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>
+            Add Wave
+        </a>
+
+    </div>
+
+
+
+    <!-- My Waves-->
+    <div class="row g-4">
+
+        <div class="col-lg-12">
+
+            <div class="dashboard-card">
+
+                <div class="card-heading">
+
+                    <div>
+                        <h5>My Waves</h5>
+                    </div>
+
+                    <a href="{% url 'my_waves' %}">
+                        View All Waves 
+                    </a>
+
+                </div>
+
+
+                <div class="table-responsive">
+
+                    <table class="table wave-table">
+
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Group Size</th>
+                                <th>Event Date</th>
+                                <th>Completed</th>
+                                <th>Input Type</th>
+                                <th>Moderation Type</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for wave in my_waves %}
+
+                            <tr>
+
+                                <td>
+                                    <strong>
+                                        {{ wave.wave_name }}
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    {{ wave | display_group_size }}
+                                </td>
+
+                                <td>
+                                    {{wave.start_date|date:"d M Y" }}
+                                </td>
+
+                                <td>
+                                    {{ wave.completed }} 
+                                </td>
+
+                                <td>
+                                    {{ wave.input_type | display_input_type }}
+                                </td>
+
+                                <td>
+                                    {{ wave.moderation_type | display_moderation_type  }}
+                                </td>
+
+
+                            </tr>
+
+                            {% empty %}
+
+                            <tr>
+                                <td colspan="4" class="text-center py-4">
+                                    No waves found.
+                                </td>
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
