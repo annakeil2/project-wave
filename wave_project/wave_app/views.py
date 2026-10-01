@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect
 
-from .models import Wave, Bottle, Announcement, Facilitator, Participant, FACILITATOR, PARTICIPANT
+from .models import Wave, Bottle, Announcement, Facilitator, Participant, FACILITATOR, PARTICIPANT, INPUT_TYPE
 from django.conf import settings
 from .forms import WaveForm, FacilitatorRegistrationForm, ParticipantRegistrationForm
 # from . import services
 from django.utils import timezone
-from .constants import MY_WAVES_NAME, WAVE_NAME
+from .constants import MY_WAVES_NAME, WAVE_NAME, WAVE_REGISTRATION
 from .API import create_wave_QR_code
+from django.contrib.auth import logout
 
 
 def home_redirect(request):
@@ -29,14 +30,33 @@ def my_waves(request):
         my_waves = Wave.objects.filter(facilitator_id=facilitator_id)
         context = {
             "facilitator_id": facilitator_id,
-            "my_waves": my_waves,
+            "my_waves": my_waves
         }
         return render(request, "wave/my_waves.html", context)
     else:
         return redirect(f"{settings.LOGIN_URL}?next={request.path}")
     
-def wave_for_participant (request):
-    return render(request, "wave/my_waves.html")
+def wave_for_participant (request, wave_id):
+    if request.user.is_authenticated and request.user.user_type == PARTICIPANT:
+        if request.user.wave_id == wave_id:
+            wave = Wave.objects.get(pk=wave_id)
+            pulse_check_form = PulseCheckForm()
+            bottle_exchange_form = BottleExchangeForm()
+            if request.method == 'POST':
+                if request.POST.form_type == INPUT_TYPE.BOTTLE_EXCHANGE:
+                    bottle_exchange_form = BottleExchangeForm(request.POST)
+                else:
+                    pulse_check_form = PulseCheckForm(request.POST)
+            context = {
+                "wave": wave,
+                "INPUT_TYPE": INPUT_TYPE,
+                "pulse_check_form": pulse_check_form,
+                "bottle_exchange_form": bottle_exchange_form
+            }
+            return render(request, "wave/wave_for_participant.html", context)
+        else:
+            logout(request)
+    return redirect(WAVE_REGISTRATION, wave_id=wave_id)
 
 
 def wave_for_presentation(request, wave_id):
@@ -274,9 +294,8 @@ def facilitator_registration(request):
         return redirect('')
     
     
-def participant_registration(request):
+def participant_registration(request, wave_id):
     """ Display the registration form and create a new participant account """
-    wave_id = request.GET.get('wave_id', None)
     if request.user.is_authenticated == False and wave_id != None:
         result = None
         if request.method == 'POST':

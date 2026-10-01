@@ -21,7 +21,7 @@ from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic.base import RedirectView
-from wave_app.constants import MY_WAVES_NAME, WAVE_NAME, WAVE_PRESENT_NAME
+from wave_app.constants import MY_WAVES_NAME, WAVE_NAME, WAVE_PRESENT_NAME, WAVE_REGISTRATION
 
 urlpatterns = [
     path('', views.home_redirect),
@@ -31,7 +31,7 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('account_details/', views.account_details, name='account_details'),
     path('facilitator_registration/', views.facilitator_registration, name='facilitator_registration'),
-    path('wave/registration/', views.participant_registration, name='wave_registration'),
+    path('wave/registration/<int:wave_id>/', views.participant_registration, name= WAVE_REGISTRATION),
     path('wave/my-waves', views.my_waves, name=MY_WAVES_NAME),
     path('wave/<int:wave_id>/', views.wave_for_participant, name=WAVE_NAME),
     path('wave/create_wave/', views.create_wave, name='create_wave'),

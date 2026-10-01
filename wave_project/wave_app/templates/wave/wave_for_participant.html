@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ wave.wave_name }}{% endblock %}
+
+{% block page_title %}{{ wave.wave_name }}{% endblock %}
+
+{% block content %}
+
+<div class="row align-items-start">
+    <div class="col">
+        {% if wave.input_type == INPUT_TYPE.BOTTLE_EXCHANGE %}
+            <form method="post">
+                {% csrf_token %}
+                {{ bottle_exchange_form.as_p }}
+                <button type="submit">
+                    Send Bottle
+                </button>
+            </form>
+        {% elif wave.input_type == INPUT_TYPE.PULSE_CHECK %}
+            <form method="post">
+                {% csrf_token %}
+                {{ pulse_check_form.as_p }}
+                <button type="submit">
+                    Send Bottle
+                </button>
+            </form>
+        {% else %}
+        <img alt="A pixel art image of an unopened bottle containing a message" src="{% static 'images/bottle.jpg' %}"></img>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
