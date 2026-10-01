@@ -156,10 +156,11 @@ class ParticipantManager(BaseUserManager):
 
 class Participant(WaveUser):
     """ A participant is a user who belongs to a specific wave """
-    wave_id = models.IntegerField()
+    # wave_id = models.IntegerField()
     wave = models.ForeignKey(
         'Wave',
         on_delete=models.CASCADE,
+        related_name='participants'
     )
     requested_follow_up = models.BooleanField()
     

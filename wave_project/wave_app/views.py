@@ -1,18 +1,31 @@
 from django.shortcuts import render, redirect
 
-from .models import Wave, Bottle, Announcement, Facilitator, Participant, FACILITATOR
+from .models import Wave, Bottle, Announcement, Facilitator, Participant, FACILITATOR, PARTICIPANT
 from django.conf import settings
 from .forms import WaveForm, FacilitatorRegistrationForm, ParticipantRegistrationForm
 # from . import services
 from django.utils import timezone
+from .constants import MY_WAVES_NAME, WAVE_NAME
 
+
+def home_redirect(request):
+    """ This allows me to redirect facilitators to my_waves and participants to the wave they belong to """
+    if request.user.is_authenticated:
+        if request.user.user_type == PARTICIPANT:
+            # participant_id = request.user.id
+            # paticipant = Participant.objects.get(pk=participant_id)
+            return redirect(WAVE_NAME, wave_id=request.user.wave_id) 
+        else:
+            """ Facilitators go to my_waves """
+            return redirect(MY_WAVES_NAME) 
+    else:
+        return redirect(f"{settings.LOGIN_URL}?next={request.path}") 
 
 def my_waves(request):
     """ Display the logged in facilitators's wave records """
     if request.user.is_authenticated and request.user.user_type == FACILITATOR:
         facilitator_id = request.user.id
         my_waves = Wave.objects.filter(facilitator_id=facilitator_id)
-        participants = my_waves.participant_set.all()
         context = {
             "facilitator_id": facilitator_id,
             "my_waves": my_waves,
@@ -21,6 +34,10 @@ def my_waves(request):
     else:
         return redirect(f"{settings.LOGIN_URL}?next={request.path}")
     
+def wave_for_participant (request):
+    return render(request, "wave/my_waves.html")
+
+
    
 # def training_user(request, user_id):
 #     """Display training records and training hour totals for a specific employee."""
@@ -161,7 +178,7 @@ def wave_form(request):
                 wave = form.save(commit=False)
                 wave.facilitator_id = request.user.id
                 wave.save()
-                return redirect('training_self')
+                return redirect(MY_WAVES_NAME)
         
         else:
             form = WaveForm()
@@ -175,33 +192,48 @@ def wave_form(request):
         return redirect(f"{settings.LOGIN_URL}?next={request.path}")
     
     
-# def account_details(request):
-#     """Display and update the current user's employee account details."""    
-#     if request.user.is_authenticated:
-#         employee = Employee.objects.get(pk=request.user.id)
-#         result = None
-#         if request.method == 'POST':
-#             form = EmployeeForm(request.POST, instance=employee)
-    
-#             if form.is_valid():
-#                 employee = form.save(commit=False)
-#                 employee.updated_date = timezone.now()
-#                 employee.save()
-#                 result = 'User updated'
+def account_details(request):
+    """ Display and update user's account details """    
+    if request.user.is_authenticated:
+        result = None
+        if request.user.user_type == FACILITATOR: 
+            facilitator = Facilitator.objects.get(pk=request.user.id)
+            if request.method == 'POST':
+                form = FacilitatorAccountForm(request.POST, instance=facilitator)
         
-#         else:
-#             form = EmployeeForm(instance=employee)
+                if form.is_valid():
+                    facilitator = form.save(commit=False)
+                    facilitator.updated_date = timezone.now()
+                    facilitator.save()
+                    result = 'Facilitor account updated'
+            
+            else:
+                form = FacilitatorAccountForm(instance=facilitator)
+            
+        else: 
+            participant = Participant.objects.get(pk=request.user.id)
+            if request.method == 'POST':
+                form = ParticipantAccountForm(request.POST, instance=participant)
         
-#         return render(
-#             request,
-#             'account_details.html',
-#             {'form': form, 'result': result}
-#         )
-#     else:
-#         return redirect(f"{settings.LOGIN_URL}?next={request.path}")
+                if form.is_valid():
+                    participant = form.save(commit=False)
+                    participant.updated_date = timezone.now()
+                    participant.save()
+                    result = 'Participant account updated'
+            
+            else:
+                form = ParticipantAccountForm(instance=participant)
+        
+        return render(
+            request,
+            'account_details.html',
+            {'form': form, 'result': result}
+        )
+    else:
+        return redirect(f"{settings.LOGIN_URL}?next={request.path}")
     
 
-def registration_facilitator(request):
+def facilitator_registration(request):
     """ Display the registration form and create a new facilitator account """
     if request.user.is_authenticated == False:
         result = None
@@ -210,7 +242,7 @@ def registration_facilitator(request):
     
             if form.is_valid():
                 employee = form.save()
-                return redirect(f"/training/")
+                return redirect(MY_WAVES_NAME)
         
         else:
             form = FacilitatorRegistrationForm()
@@ -221,11 +253,10 @@ def registration_facilitator(request):
             {'form': form, 'result': result}
         )
     else:
-        """ TODO: Fix redirect """
-        return redirect(f"/training/")
+        return redirect('')
     
     
-def registration_participant(request):
+def participant_registration(request):
     """ Display the registration form and create a new participant account """
     wave_id = request.GET.get('wave_id', None)
     if request.user.is_authenticated == False and wave_id != None:
@@ -235,7 +266,7 @@ def registration_participant(request):
     
             if form.is_valid():
                 employee = form.save()
-                return redirect(f"/training/")
+                return redirect('WAVE_NAME', wave_id=wave_id)
         
         else:
             form = ParticipantRegistrationForm()
@@ -246,5 +277,4 @@ def registration_participant(request):
             {'form': form, 'result': result}
         )
     else:
-        """ TODO: Fix redirect """
-        return redirect(f"/training/")
+        return redirect('')

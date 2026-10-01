@@ -1,5 +1,5 @@
 """
-URL configuration for training_tracker project.
+URL configuration for wave_app project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/4.2/topics/http/urls/
@@ -21,14 +21,19 @@ from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic.base import RedirectView
+from wave_app.constants import MY_WAVES_NAME, WAVE_NAME
 
 urlpatterns = [
+    path('', views.home_redirect),
+    # path('/', views.home_redirect),
     path('admin/', admin.site.urls),
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    # path('account_details/', views.account_details, name='account_details'),
-    path('facilitator_registration/', views.registration_facilitator, name='facilitator_registration'),
-    path('wave/registration/', views.registration_participant, name='wave_registration'),
+    path('account_details/', views.account_details, name='account_details'),
+    path('facilitator_registration/', views.facilitator_registration, name='facilitator_registration'),
+    path('wave/registration/', views.participant_registration, name='wave_registration'),
+    path('wave/my-waves', views.my_waves, name=MY_WAVES_NAME),
+    path('wave/<int:wave_id>/', views.wave_for_participant, name=WAVE_NAME),
     path(
         'password_reset/',
         auth_views.PasswordResetView.as_view(template_name='password_reset.html'),
