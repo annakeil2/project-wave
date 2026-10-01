@@ -39,7 +39,7 @@ class Wave(models.Model):
     )
     deleted_date = models.DateTimeField(null=True, blank=True)
     moderation_type = models.IntegerField(
-        choices=INPUT_TYPE.items(),
+        choices=MODERATION_TYPE.items(),
         default=0
     )
     

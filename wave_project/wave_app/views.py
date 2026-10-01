@@ -168,7 +168,7 @@ def wave_for_participant (request):
 #         return redirect(f"{settings.LOGIN_URL}?next={request.path}")
 
 
-def wave_form(request):
+def create_wave(request):
     """ Display the 'Add New Wave' form and handle creation of a new wave """    
     if request.user.is_authenticated and request.user.user_type == FACILITATOR:
         if request.method == 'POST':

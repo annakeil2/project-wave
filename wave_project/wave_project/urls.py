@@ -34,6 +34,7 @@ urlpatterns = [
     path('wave/registration/', views.participant_registration, name='wave_registration'),
     path('wave/my-waves', views.my_waves, name=MY_WAVES_NAME),
     path('wave/<int:wave_id>/', views.wave_for_participant, name=WAVE_NAME),
+    path('wave/create_wave/', views.create_wave, name='create_wave'),
     path(
         'password_reset/',
         auth_views.PasswordResetView.as_view(template_name='password_reset.html'),
