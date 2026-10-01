@@ -6,6 +6,7 @@ from .forms import WaveForm, FacilitatorRegistrationForm, ParticipantRegistratio
 # from . import services
 from django.utils import timezone
 from .constants import MY_WAVES_NAME, WAVE_NAME
+from .API import create_wave_QR_code
 
 
 def home_redirect(request):
@@ -45,9 +46,11 @@ def wave_for_presentation(request, wave_id):
         wave = Wave.objects.get(pk=wave_id)
         if wave.facilitator_id != facilitator_id:
             return redirect(f"{settings.LOGIN_URL}")
+        qr = create_wave_QR_code(request, wave_id)
         context = {
             "facilitator_id": facilitator_id,
             "wave": wave,
+            "qr": qr
         }
         return render(request, "wave/wave_for_presentation.html", context)
     else:
