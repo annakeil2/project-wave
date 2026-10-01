@@ -19,7 +19,34 @@ class WaveForm(forms.ModelForm):
             ),
         }
 
-       
+
+class PulseCheckForm(forms.ModelForm):
+    """ A form for participants to submit their bottled messages """
+    form_type = forms.IntegerField(widget=forms.HiddenInput())
+    def __init__(self, form_type, *args, **kwargs):
+        super(PulseCheckForm, self).__init__(*args, **kwargs)
+        self.fields['form_type'].initial = form_type
+    class Meta:
+        model = Bottle
+
+        fields = [
+            'message',
+        ]
+
+
+class BottleExchangeForm(forms.ModelForm):
+    """ A form for participants to submit their bottled messages """
+    form_type = forms.IntegerField(widget=forms.HiddenInput())
+    def __init__(self, form_type, *args, **kwargs):
+        super(BottleExchangeForm, self).__init__(*args, **kwargs)
+        self.fields['form_type'].initial = form_type
+    class Meta:
+        model = Bottle
+
+        fields = [
+            'message',
+        ]
+
 # class MessageForm(forms.ModelForm):
 #     """A form for creating messages"""
 #     def __init__(self, *args, **kwargs):

@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 
 from .models import Wave, Bottle, Announcement, Facilitator, Participant, FACILITATOR, PARTICIPANT, INPUT_TYPE
 from django.conf import settings
-from .forms import WaveForm, FacilitatorRegistrationForm, ParticipantRegistrationForm
+from .forms import WaveForm, FacilitatorRegistrationForm, ParticipantRegistrationForm, BottleExchangeForm, PulseCheckForm
 # from . import services
 from django.utils import timezone
 from .constants import MY_WAVES_NAME, WAVE_NAME, WAVE_REGISTRATION
@@ -45,8 +45,15 @@ def wave_for_participant (request, wave_id):
             if request.method == 'POST':
                 if request.POST.form_type == INPUT_TYPE.BOTTLE_EXCHANGE:
                     bottle_exchange_form = BottleExchangeForm(request.POST)
+                    if bottle_exchange_form.is_valid():
+                        bottle_exchange_form.save()
                 else:
                     pulse_check_form = PulseCheckForm(request.POST)
+                    if pulse_check_form.is_valid():
+                        pulse_check_form.save()
+            
+            """ TODO: I need to sort out the recipient for BottleExchangeForm """
+            
             context = {
                 "wave": wave,
                 "INPUT_TYPE": INPUT_TYPE,
@@ -58,6 +65,36 @@ def wave_for_participant (request, wave_id):
             logout(request)
     return redirect(WAVE_REGISTRATION, wave_id=wave_id)
 
+    
+# def wave_for_participant (request, wave_id):
+#     if request.user.is_authenticated and request.user.user_type == PARTICIPANT:
+#         if request.user.wave_id == wave_id:
+#             wave = Wave.objects.get(pk=wave_id)
+#             form = BottleForm()
+            
+#             if request.method == 'POST':
+#                 form = BottleForm(request.POST)
+                
+#                 if form.is_valid():
+#                     form.save(commit=False)
+#                     if request.POST.form_type == INPUT_TYPE.BOTTLE_EXCHANGE:
+#                         form.input_type = INPUT_TYPE.BOTTLE_EXCHANGE
+#                     else:
+#                         form.input_type = INPUT_TYPE.PULSE_CHECK
+#                         form.recipient_id = wave.facilitator_id
+                        
+#                     form.wave_id = wave_id;
+#                     form.sender_id = request.user.id;
+            
+#             context = {
+#                 "wave": wave,
+#                 "INPUT_TYPE": INPUT_TYPE,
+#                 "form": form,
+#             }
+#             return render(request, "wave/wave_for_participant.html", context)
+#         else:
+#             logout(request)
+#     return redirect(WAVE_REGISTRATION, wave_id=wave_id)
 
 def wave_for_presentation(request, wave_id):
     """ Display wave on screen for presentation, includes QR code and submitted messages for pulse check """
