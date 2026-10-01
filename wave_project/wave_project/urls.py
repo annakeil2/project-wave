@@ -21,7 +21,7 @@ from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic.base import RedirectView
-from wave_app.constants import MY_WAVES_NAME, WAVE_NAME
+from wave_app.constants import MY_WAVES_NAME, WAVE_NAME, WAVE_PRESENT_NAME
 
 urlpatterns = [
     path('', views.home_redirect),
@@ -35,6 +35,7 @@ urlpatterns = [
     path('wave/my-waves', views.my_waves, name=MY_WAVES_NAME),
     path('wave/<int:wave_id>/', views.wave_for_participant, name=WAVE_NAME),
     path('wave/create_wave/', views.create_wave, name='create_wave'),
+    path('wave/present/<int:wave_id>/', views.wave_for_presentation, name=WAVE_PRESENT_NAME),
     path(
         'password_reset/',
         auth_views.PasswordResetView.as_view(template_name='password_reset.html'),

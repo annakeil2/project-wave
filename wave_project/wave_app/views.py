@@ -38,6 +38,21 @@ def wave_for_participant (request):
     return render(request, "wave/my_waves.html")
 
 
+def wave_for_presentation(request, wave_id):
+    """ Display wave on screen for presentation, includes QR code and submitted messages for pulse check """
+    if request.user.is_authenticated and request.user.user_type == FACILITATOR:
+        facilitator_id = request.user.id
+        wave = Wave.objects.get(pk=wave_id)
+        if wave.facilitator_id != facilitator_id:
+            return redirect(f"{settings.LOGIN_URL}")
+        context = {
+            "facilitator_id": facilitator_id,
+            "wave": wave,
+        }
+        return render(request, "wave/wave_for_presentation.html", context)
+    else:
+        return redirect(f"{settings.LOGIN_URL}?next={request.path}")
+
    
 # def training_user(request, user_id):
 #     """Display training records and training hour totals for a specific employee."""
