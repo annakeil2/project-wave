@@ -1,12 +1,12 @@
 {% extends "logged_out_base.html" %}
 
-{% block title %}Register{% endblock %}
+{% block title %}Register {{ user_type }} {% endblock %}
 
-{% block page_title %}Register{% endblock %}
+{% block page_title %}Register {{ user_type }}{% endblock %}
 
 {% block content %}
 
-<h2>Register</h2>
+<h2>Register {{ user_type }}</h2>
 
 {% if result %}
     <p class="form_result">

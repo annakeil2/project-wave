@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% load static %}
+
 {% block title %}{{ wave.wave_name }}{% endblock %}
 
 {% block page_title %}{{ wave.wave_name }}{% endblock %}
@@ -25,7 +27,7 @@
                 </button>
             </form>
         {% else %}
-        <img alt="A pixel art image of an unopened bottle containing a message" src="{% static 'images/bottle.jpg' %}"></img>
+            <img alt="A pixel art image of an unopened bottle containing a message" src="{% static 'images/bottle.jpg' %}"></img>
         {% endif %}
     </div>
 </div>

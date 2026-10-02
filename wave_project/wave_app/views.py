@@ -7,7 +7,7 @@ from .forms import WaveForm, FacilitatorRegistrationForm, ParticipantRegistratio
 from django.utils import timezone
 from .constants import MY_WAVES_NAME, WAVE_NAME, WAVE_REGISTRATION
 from .API import create_wave_QR_code
-from django.contrib.auth import logout
+from django.contrib.auth import logout, authenticate, login
 
 
 def home_redirect(request):
@@ -41,19 +41,26 @@ def wave_for_participant (request, wave_id):
         if request.user.wave_id == wave_id:
             wave = Wave.objects.get(pk=wave_id)
             pulse_check_form = PulseCheckForm()
-            bottle_exchange_form = BottleExchangeForm()
+            bottle_exchange_form = BottleExchangeForm(wave_id=wave_id,sender_id=request.user.id)
             if request.method == 'POST':
                 if request.POST.form_type == INPUT_TYPE.BOTTLE_EXCHANGE:
-                    bottle_exchange_form = BottleExchangeForm(request.POST)
+                    bottle_exchange_form = BottleExchangeForm(wave_id, request.user.id, request.POST)
                     if bottle_exchange_form.is_valid():
-                        bottle_exchange_form.save()
+                        bottle = bottle_exchange_form.save(commit=False)
+                        bottle.wave_id = wave_id
+                        bottle.sender_id = request.user.id
+                        bottle.input_type = INPUT_TYPE.BOTTLE_EXCHANGE
+                        bottle.release_number = wave.bottle_releases + 1
+                        bottle.save()
                 else:
                     pulse_check_form = PulseCheckForm(request.POST)
                     if pulse_check_form.is_valid():
-                        pulse_check_form.save()
-            
-            """ TODO: I need to sort out the recipient for BottleExchangeForm """
-            
+                        bottle = pulse_check_form.save(commit=False)
+                        bottle.wave_id = wave_id
+                        bottle.sender_id = request.user.id
+                        bottle.recipient_id = wave.facilitator_id
+                        bottle.input_type = INPUT_TYPE.PULSE_CHECK
+                        bottle.save()
             context = {
                 "wave": wave,
                 "INPUT_TYPE": INPUT_TYPE,
@@ -316,7 +323,16 @@ def facilitator_registration(request):
             form = FacilitatorRegistrationForm(request.POST)
     
             if form.is_valid():
-                employee = form.save()
+                facilitator = form.save(commit=False)
+                facilitator.join_order = 0
+                facilitator.save()
+                
+                """ automatically login after registering """
+                new_user = authenticate(
+                    username=form.cleaned_data['username'],
+                    password=form.cleaned_data['password'],
+                )
+                login(request, new_user)
                 return redirect(MY_WAVES_NAME)
         
         else:
@@ -325,7 +341,7 @@ def facilitator_registration(request):
         return render(
             request,
             'registration.html',
-            {'form': form, 'result': result}
+            {'form': form, 'result': result, 'user_type': 'Facilitator'}
         )
     else:
         return redirect('')
@@ -337,18 +353,35 @@ def participant_registration(request, wave_id):
         result = None
         if request.method == 'POST':
             form = ParticipantRegistrationForm(wave_id, request.POST)
+            form.wave_id = wave_id
+            """ TODO: set this correctly """
+            form.join_order = 1
+            form.requested_follow_up = False
+            form.user_type = PARTICIPANT
+            form.is_staff = False
+            form.is_superuser = False
     
+            print('form', form.data)
             if form.is_valid():
-                employee = form.save()
-                return redirect('WAVE_NAME', wave_id=wave_id)
+                participant = form.save(commit=False)
+                print('participant', participant)
+                participant.save()
+                
+                """ automatically login after registering """
+                new_user = authenticate(
+                    username=form.cleaned_data['username'],
+                    password=form.cleaned_data['password'],
+                )
+                login(request, new_user)
+                return redirect(WAVE_NAME, wave_id=wave_id)
         
         else:
-            form = ParticipantRegistrationForm()
+            form = ParticipantRegistrationForm(wave_id=wave_id)
         
         return render(
             request,
             'registration.html',
-            {'form': form, 'result': result}
+            {'form': form, 'result': result, 'user_type': 'Participant'}
         )
     else:
-        return redirect('')
+        return redirect('/')
