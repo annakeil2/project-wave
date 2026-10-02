@@ -8,10 +8,18 @@
 
 <div class="row align-items-start">
     <div class="col">
-        Messages
+        <h2>Bottles</h2>
+        {% for pulse_check in pulse_checks %}
+            <div class="row">                
+                {{ pulse_check.message }}
+            </div>
+        {% empty %}
+            <div class="row">
+                    Waiting for Godot (i.e. your pulse check messages).
+            </div>
+        {% endfor %}
     </div>
     <div class="col">
-        QR code
         {{qr | safe}}
     </div>
 </div>
@@ -19,15 +27,45 @@
 <div class="row align-items-start">
     <div class="col">
         <button id="pulse_check_button"> Request Pulse Check</button>
-    </div>   
+    </div>
+    <div class="col">
+        <button id="bottle_exchange_button"> Enable Bottle Exchange</button>
+    </div> 
 </div>
 
 <script>
-const button = document.getElementById('pulse_check_button');
-button.addEventListener("click", (event) => {
-    console.log('pressed')
-});
+    const WAVE_ID = '{{ wave.id }}';
+    const BOTTLE_EXCHANGE = 1;
+    const PULSE_CHECK = 2;
+    const API_URL = '{{ API_URL }}';
+    async function changeWaveStatus(input_type, wave_id) {
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify({ 
+                    input_type: input_type, 
+                    wave_id: wave_id
+                }),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error(error.message);
+        }
+    }
 
+    const pulse_check_button = document.getElementById('pulse_check_button');
+    pulse_check_button.addEventListener("click", (event) => {
+        changeWaveStatus(PULSE_CHECK, WAVE_ID)
+    });
+    const bottle_exchange_button = document.getElementById('bottle_exchange_button');
+    bottle_exchange_button.addEventListener("click", (event) => {
+        changeWaveStatus(BOTTLE_EXCHANGE, WAVE_ID)
+    });
 
 </script>
 {% endblock %}

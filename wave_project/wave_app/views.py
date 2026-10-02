@@ -5,9 +5,13 @@ from django.conf import settings
 from .forms import WaveForm, FacilitatorRegistrationForm, ParticipantRegistrationForm, BottleExchangeForm, PulseCheckForm
 # from . import services
 from django.utils import timezone
-from .constants import MY_WAVES_NAME, WAVE_NAME, WAVE_REGISTRATION
+from .constants import MY_WAVES_NAME, WAVE_NAME, WAVE_REGISTRATION, WAVE_INPUT_STATUS_API_URL
 from .API import create_wave_QR_code
 from django.contrib.auth import logout, authenticate, login
+from django.urls import reverse
+from django.http import HttpResponseServerError, HttpResponse
+import json
+from django.views.decorators.csrf import csrf_exempt
 
 
 def home_redirect(request):
@@ -22,6 +26,7 @@ def home_redirect(request):
             return redirect(MY_WAVES_NAME) 
     else:
         return redirect(f"{settings.LOGIN_URL}?next={request.path}") 
+
 
 def my_waves(request):
     """ Display the logged in facilitators's wave records """
@@ -72,36 +77,6 @@ def wave_for_participant (request, wave_id):
             logout(request)
     return redirect(WAVE_REGISTRATION, wave_id=wave_id)
 
-    
-# def wave_for_participant (request, wave_id):
-#     if request.user.is_authenticated and request.user.user_type == PARTICIPANT:
-#         if request.user.wave_id == wave_id:
-#             wave = Wave.objects.get(pk=wave_id)
-#             form = BottleForm()
-            
-#             if request.method == 'POST':
-#                 form = BottleForm(request.POST)
-                
-#                 if form.is_valid():
-#                     form.save(commit=False)
-#                     if request.POST.form_type == INPUT_TYPE.BOTTLE_EXCHANGE:
-#                         form.input_type = INPUT_TYPE.BOTTLE_EXCHANGE
-#                     else:
-#                         form.input_type = INPUT_TYPE.PULSE_CHECK
-#                         form.recipient_id = wave.facilitator_id
-                        
-#                     form.wave_id = wave_id;
-#                     form.sender_id = request.user.id;
-            
-#             context = {
-#                 "wave": wave,
-#                 "INPUT_TYPE": INPUT_TYPE,
-#                 "form": form,
-#             }
-#             return render(request, "wave/wave_for_participant.html", context)
-#         else:
-#             logout(request)
-#     return redirect(WAVE_REGISTRATION, wave_id=wave_id)
 
 def wave_for_presentation(request, wave_id):
     """ Display wave on screen for presentation, includes QR code and submitted messages for pulse check """
@@ -111,144 +86,36 @@ def wave_for_presentation(request, wave_id):
         if wave.facilitator_id != facilitator_id:
             return redirect(f"{settings.LOGIN_URL}")
         qr = create_wave_QR_code(request, wave_id)
+        API_URL = request.scheme + '://' + request.get_host() + reverse(
+            WAVE_INPUT_STATUS_API_URL,
+        )
         context = {
             "facilitator_id": facilitator_id,
             "wave": wave,
-            "qr": qr
+            "qr": qr,
+            "API_URL": API_URL
         }
         return render(request, "wave/wave_for_presentation.html", context)
     else:
         return redirect(f"{settings.LOGIN_URL}?next={request.path}")
-
+    
+@csrf_exempt    
+def wave_input_api(request):
+    if request.user.is_authenticated and request.user.user_type == FACILITATOR and request.method == 'POST':
+        facilitator_id = request.user.id
+        data = json.loads(request.body)
+        print('data', data)
+        wave_id = data['wave_id']
+        input_type = data['input_type']
+        wave = Wave.objects.get(pk=wave_id)
+        if wave.facilitator_id != facilitator_id:
+            return HttpResponseServerError("Not your wave")
+        wave.input_type = input_type
+        wave.save()
+        return HttpResponse(json.dumps({'message': 'OKAY'}), content_type='application/json')
+    else:
+        return HttpResponseServerError("Not a facilitator")
    
-# def training_user(request, user_id):
-#     """Display training records and training hour totals for a specific employee."""
-#     """Only superusers can view other user's records"""
-#     if request.user.is_authenticated:
-#         if request.user.is_staff:
-#             employee = Employee.objects.get(pk=user_id)
-#             user_trainings = Training.objects.filter(id=user_id)
-#             total = services.get_total_number_of_training_hours(user_trainings)
-#             ongoing_training = services.get_ongoing_training_hours(user_trainings)
-#             completed_training = services.get_completed_training_hours(user_trainings)
-#             context = {
-#                 "user_id": user_id,
-#                 "trainings": user_trainings,
-#                 "employee": employee,
-#                 "total_training": total,
-#                 "ongoing_training": ongoing_training,
-#                 "completed_training": completed_training
-#             }
-#             return render(request, "training/training_user.html", context)
-        
-#     return redirect(f"{settings.LOGIN_URL}?next={request.path}")
-    
-
-# def training_employees(request):
-#     """Display a list of all employees to view their training."""
-#     """Only superusers can view other user's records"""
-#     if request.user.is_authenticated:
-#         if request.user.is_staff:
-#             all_employees = Employee.objects.all()
-#             context = {"employees": all_employees}
-#             return render(request, "training/training_employees.html", context)
-#     return redirect(f"{settings.LOGIN_URL}?next={request.path}")
-    
-
-# def inbox(request):
-#     """Display active messages for the current user."""
-#     if request.user.is_authenticated:
-#         user_id = request.user.id            
-#         messages = Message.objects.filter(receiver_user_id=user_id, message_status=Message.ACTIVE)
-#         context={
-#             "messages": messages
-#         }
-#         return render(request, "messages/inbox.html", context)
-#     else:
-#         return redirect(f"{settings.LOGIN_URL}?next={request.path}")
-    
-    
-# def archive(request):
-#     """Display archived messages for the current user."""
-#     if request.user.is_authenticated:
-#         user_id = request.user.id            
-#         messages = Message.objects.filter(receiver_user_id=user_id, message_status=Message.ARCHIVED)
-#         context={
-#             "messages": messages
-#         }
-#         return render(request, "messages/inbox.html", context)
-#     else:
-#         return redirect(f"{settings.LOGIN_URL}?next={request.path}")
-
-  
-# def message_status(request, message_id):
-#     """Update the status of a message belonging to the current user."""
-#     if request.user.is_authenticated:
-#         user_id = request.user.id
-#         if request.method == 'POST':
-#             message_status = request.POST.get("message_status", 1)
-#             message = Message.objects.get(pk=message_id)
-#             if message.receiver_user_id != user_id:
-#                 return redirect('inbox')
-#             message.message_status = message_status
-#             message.save()
-#         return redirect('inbox')
-#     else:
-#         return redirect(f"{settings.LOGIN_URL}?next={request.path}")
-
-
-# def outbox(request):
-#     """Display messages sent by the current user."""
-#     if request.user.is_authenticated:
-#         user_id = request.user.id
-#         messages = Message.objects.filter(sender_user_id=user_id)
-#         context={
-#             "messages": messages
-#         }
-#         return render(request, "messages/outbox.html", context)
-#     else:
-#         return redirect(f"{settings.LOGIN_URL}?next={request.path}")
-
-
-# def message_detail(request, message_id):
-#     """Display the details of a specific message."""
-#     if request.user.is_authenticated:
-#         message = Message.objects.get(id=message_id)
-#         if message.receiver_user_id != request.user.id:
-#             return redirect('inbox')
-#         context={
-#             "message": message
-#         }
-#         return render(request, "messages/message_detail.html", context)
-#     else:
-#         return redirect(f"{settings.LOGIN_URL}?next={request.path}")
-
-
-# def compose(request):
-#     """Display the message composition form and handle sending new messages."""    
-#     if request.user.is_authenticated:
-#         user_id = request.user.id
-#         if request.method == 'POST':
-#             form = MessageForm(request.POST, sender_id=user_id)
-    
-#             if form.is_valid():
-#                 message = form.save(commit=False)
-#                 message.sender_user_id = request.user.id
-#                 message.message_status = Message.ACTIVE
-#                 message.save()
-#                 return redirect('inbox')
-        
-#         else:
-#             form = MessageForm(sender_id=user_id)
-        
-#         return render(
-#             request,
-#             'messages/compose.html',
-#             {'form': form}
-#         )
-#     else:
-#         return redirect(f"{settings.LOGIN_URL}?next={request.path}")
-
 
 def create_wave(request):
     """ Display the 'Add New Wave' form and handle creation of a new wave """    
