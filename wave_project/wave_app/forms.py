@@ -37,8 +37,16 @@ class PulseCheckForm(forms.ModelForm):
 class BottleExchangeForm(forms.ModelForm):
     """ A form for participants to submit their bottled messages """
     form_type = forms.IntegerField(widget=forms.HiddenInput())
-    def __init__(self, form_type, *args, **kwargs):
+    def __init__(self, wave_id, form_type, *args, **kwargs):
+        """ Initialise the form and exclude the sender from the recipient list """
+        sender_id = kwargs.pop('sender_id')
+        wave = Wave.objects.get(pk=wave_id)
+        sender = Participant.objects.get(pk=sender_id)
+        recipient_join_order = sender.join_order + wave.bottle_releases + 1
+        recipient = Participant.objects.filter(join_order=recipient_join_order, wave_id=wave_id)
+
         super(BottleExchangeForm, self).__init__(*args, **kwargs)
+        self.fields['recipient_id'].initial = recipient.id
         self.fields['form_type'].initial = form_type
     class Meta:
         model = Bottle
@@ -46,6 +54,10 @@ class BottleExchangeForm(forms.ModelForm):
         fields = [
             'message',
         ]
+        
+        widgets = {
+            'recipient_id': forms.HiddenInput(),
+        }
 
 # class MessageForm(forms.ModelForm):
 #     """A form for creating messages"""

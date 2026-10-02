@@ -43,6 +43,9 @@ class Wave(models.Model):
         default=0
     )
     
+    """ Keeps track of how many bottle releases the facilitator has completed """
+    bottle_releases = models.IntegerField(default=0)
+
 
 class Bottle (models.Model):
     
@@ -57,6 +60,7 @@ class Bottle (models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     is_flagged = models.BooleanField()
+    release_number = models.IntegerField(default=None)
 
     
 
@@ -163,6 +167,9 @@ class Participant(WaveUser):
         related_name='participants'
     )
     requested_follow_up = models.BooleanField()
+    """ This will store an incrementing number per wave for the participant
+    that we can use for the pseudo-randomisation of bottle messages """
+    join_order = models.IntegerField()
     
     objects = ParticipantManager()
     
