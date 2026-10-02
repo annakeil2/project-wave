@@ -67,10 +67,9 @@ Dashboard
                             {% for wave in my_waves %}
 
                             <tr>
-
                                 <td>
                                     <strong>
-                                        {{ wave.wave_name }}
+                                        <a href="{% url 'wave-present' wave.id %}">{{ wave.wave_name }}</a>
                                     </strong>
                                 </td>
 

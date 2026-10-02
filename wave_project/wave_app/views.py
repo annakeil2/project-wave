@@ -9,7 +9,7 @@ from django.http import HttpResponseServerError, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Max
 
-from .models import Wave, Bottle, Announcement, WaveUser, FACILITATOR, PARTICIPANT, INPUT_TYPE, PULSE_CHECK
+from .models import Wave, Bottle, Announcement, WaveUser, FACILITATOR, PARTICIPANT, INPUT_TYPE, PULSE_CHECK, BOTTLE_EXCHANGE
 from .forms import WaveForm, FacilitatorRegistrationForm, ParticipantRegistrationForm, BottleExchangeForm, PulseCheckForm
 from .constants import MY_WAVES_NAME, WAVE_NAME, WAVE_REGISTRATION, WAVE_INPUT_STATUS_API_URL
 from .API import create_wave_QR_code
@@ -48,30 +48,52 @@ def wave_for_participant (request, wave_id):
             wave = Wave.objects.get(pk=wave_id)
             pulse_check_form = PulseCheckForm()
             bottle_exchange_form = BottleExchangeForm(wave_id=wave_id,sender_id=request.user.id)
+            bottle = None
             if request.method == 'POST':
-                if request.POST.form_type == INPUT_TYPE.BOTTLE_EXCHANGE:
+                if int(request.POST['form_type']) == BOTTLE_EXCHANGE:
                     bottle_exchange_form = BottleExchangeForm(wave_id, request.user.id, request.POST)
                     if bottle_exchange_form.is_valid():
                         bottle = bottle_exchange_form.save(commit=False)
                         bottle.wave_id = wave_id
                         bottle.sender_id = request.user.id
-                        bottle.input_type = INPUT_TYPE.BOTTLE_EXCHANGE
+                        bottle.input_type = BOTTLE_EXCHANGE
                         bottle.release_number = wave.bottle_releases + 1
+                        bottle.is_flagged = False
                         bottle.save()
                 else:
                     pulse_check_form = PulseCheckForm(request.POST)
                     if pulse_check_form.is_valid():
-                        bottle = pulse_check_form.save(commit=False)
-                        bottle.wave_id = wave_id
-                        bottle.sender_id = request.user.id
-                        bottle.recipient_id = wave.facilitator_id
-                        bottle.input_type = INPUT_TYPE.PULSE_CHECK
-                        bottle.save()
+                        pulse_check = pulse_check_form.save(commit=False)
+                        pulse_check.wave_id = wave_id
+                        pulse_check.sender_id = request.user.id
+                        pulse_check.recipient_id = wave.facilitator_id
+                        pulse_check.release_number = 0
+                        pulse_check.input_type = PULSE_CHECK
+                        pulse_check.is_flagged = False
+                        pulse_check.save()
+                        print('pulse_check save. release_number:', pulse_check.release_number)
+            else:
+                bottle = Bottle.objects.filter(sender_id=request.user.id, wave_id=wave_id, input_type=BOTTLE_EXCHANGE).order_by("-release_number", "pk").first()
+            
+            show_bottle_exchange = bottle == None or wave.bottle_releases > bottle.release_number
+            received_bottle = Bottle.objects.filter(
+                wave_id=wave_id, 
+                recipient_id=request.user.id, 
+                input_type=BOTTLE_EXCHANGE, 
+                release_number=wave.bottle_releases + 1
+            ).first()
+
             context = {
                 "wave": wave,
-                "INPUT_TYPE": INPUT_TYPE,
+                "INPUT_TYPE": {
+                    "BOTTLE_EXCHANGE": BOTTLE_EXCHANGE,
+                    "PULSE_CHECK": PULSE_CHECK,
+                },
                 "pulse_check_form": pulse_check_form,
-                "bottle_exchange_form": bottle_exchange_form
+                "bottle_exchange_form": bottle_exchange_form,
+                "bottle": bottle,
+                "show_bottle_exchange": show_bottle_exchange,
+                "received_bottle": received_bottle,
             }
             return render(request, "wave/wave_for_participant.html", context)
         else:
