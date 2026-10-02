@@ -1,5 +1,5 @@
 from django import forms
-from .models import Wave, Bottle, Announcement, Facilitator, Participant, BOTTLE_EXCHANGE, PULSE_CHECK, PARTICIPANT, FACILITATOR
+from .models import Wave, Bottle, Announcement, WaveUser, BOTTLE_EXCHANGE, PULSE_CHECK, PARTICIPANT, FACILITATOR
 
 class WaveForm(forms.ModelForm):
     """ A form for creating and updating waves """
@@ -42,15 +42,31 @@ class BottleExchangeForm(forms.ModelForm):
     def __init__(self, wave_id, sender_id, *args, **kwargs):
         """ Initialise the form and exclude the sender from the recipient list """
         wave = Wave.objects.get(pk=wave_id)
-        sender = Participant.objects.get(pk=sender_id)
+        sender = WaveUser.objects.get(pk=sender_id)
         recipient_join_order = sender.join_order + wave.bottle_releases + 1
         print('recipient_join_order', recipient_join_order)
-        recipient = Participant.objects.filter(
+        all_participants = WaveUser.objects.filter(
+            wave_id=wave_id,
+            user_type=PARTICIPANT
+        )
+        recipient = WaveUser.objects.filter(
             join_order=recipient_join_order, 
-            wave_id=wave_id
+            wave_id=wave_id,
+            user_type=PARTICIPANT
         )
         if recipient.count() == 0:
-            raise "Recipient not found"
+            if all_participants.count() < 2:
+                raise "Recipient not found"
+            
+            recipient_join_order = recipient_join_order - all_participants.count()
+            recipient = WaveUser.objects.filter(
+                join_order=recipient_join_order, 
+                wave_id=wave_id,
+                user_type=PARTICIPANT
+            )
+            if recipient.count() == 0:
+                raise "Recipient not found"
+            
         elif recipient.count() > 1:
             raise "Multiple Recipients found"
 
@@ -72,56 +88,6 @@ class BottleExchangeForm(forms.ModelForm):
             'recipient_id': forms.HiddenInput(),
         }
 
-# class MessageForm(forms.ModelForm):
-#     """A form for creating messages"""
-#     def __init__(self, *args, **kwargs):
-#         """Initialise the form and exclude the sender from the recipient list."""
-#         sender_id = kwargs.pop('sender_id')
-#         super(MessageForm, self).__init__(*args, **kwargs)
-#         raw_staff = Employee.objects.exclude(id=sender_id)
-#         staff = [(q.id, q.get_full_name()) for q in raw_staff]
-#         self.fields['receiver_user_id'] = forms.ChoiceField(
-#             choices=tuple(staff)
-#         )
-
- 
-#     class Meta:
-#         model = Message
-
-#         fields = [
-#             'id',
-#             # 'sender_user_id',
-#             'receiver_user_id',
-#             'subject',
-#             'body',
-#             # 'message_status',
-#         ]
-
-#         widgets = {
-#             'body': forms.Textarea(
-#                 attrs={'cols': 80, 'rows': 20}
-#             ),
-#         }
-       
-        
-# class EmployeeForm(forms.ModelForm):
-#     """A form for viewing and updating employee details."""
-#     def __init__(self, *args, **kwargs):
-#         """Initialise the form and exclude the sender from the recipient list."""
-#         super(EmployeeForm, self).__init__(*args, **kwargs)
-#         self.fields['email'].required = True
-    
-        
-#     class Meta:
-#         model = Employee
-
-#         fields = [
-#             'username',
-#             'first_name',
-#             'last_name',
-#             'email'
-#         ]
-
 
 class FacilitatorRegistrationForm(forms.ModelForm):
     """ A form for registering a new facilitator account """
@@ -134,7 +100,7 @@ class FacilitatorRegistrationForm(forms.ModelForm):
     
        
     class Meta:
-        model = Facilitator
+        model = WaveUser
 
         fields = [
             'username',
@@ -168,7 +134,7 @@ class ParticipantRegistrationForm(forms.ModelForm):
         self.user_type = PARTICIPANT
        
     class Meta:
-        model = Participant
+        model = WaveUser
 
         fields = [
             'wave_id',

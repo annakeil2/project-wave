@@ -1,17 +1,18 @@
-from django.shortcuts import render, redirect
+import json
 
-from .models import Wave, Bottle, Announcement, Facilitator, Participant, FACILITATOR, PARTICIPANT, INPUT_TYPE
+from django.shortcuts import render, redirect
 from django.conf import settings
-from .forms import WaveForm, FacilitatorRegistrationForm, ParticipantRegistrationForm, BottleExchangeForm, PulseCheckForm
-# from . import services
 from django.utils import timezone
-from .constants import MY_WAVES_NAME, WAVE_NAME, WAVE_REGISTRATION, WAVE_INPUT_STATUS_API_URL
-from .API import create_wave_QR_code
 from django.contrib.auth import logout, authenticate, login
 from django.urls import reverse
 from django.http import HttpResponseServerError, HttpResponse
-import json
 from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Max
+
+from .models import Wave, Bottle, Announcement, WaveUser, FACILITATOR, PARTICIPANT, INPUT_TYPE, PULSE_CHECK
+from .forms import WaveForm, FacilitatorRegistrationForm, ParticipantRegistrationForm, BottleExchangeForm, PulseCheckForm
+from .constants import MY_WAVES_NAME, WAVE_NAME, WAVE_REGISTRATION, WAVE_INPUT_STATUS_API_URL
+from .API import create_wave_QR_code
 
 
 def home_redirect(request):
@@ -89,11 +90,13 @@ def wave_for_presentation(request, wave_id):
         API_URL = request.scheme + '://' + request.get_host() + reverse(
             WAVE_INPUT_STATUS_API_URL,
         )
+        pulse_checks = Bottle.objects.filter(wave_id=wave_id, input_type=PULSE_CHECK)
         context = {
             "facilitator_id": facilitator_id,
             "wave": wave,
             "qr": qr,
-            "API_URL": API_URL
+            "API_URL": API_URL,
+            "pulse_checks": pulse_checks
         }
         return render(request, "wave/wave_for_presentation.html", context)
     else:
@@ -221,8 +224,8 @@ def participant_registration(request, wave_id):
         if request.method == 'POST':
             form = ParticipantRegistrationForm(wave_id, request.POST)
             form.wave_id = wave_id
-            """ TODO: set this correctly """
-            form.join_order = 1
+            
+            
             form.requested_follow_up = False
             form.user_type = PARTICIPANT
             form.is_staff = False
@@ -231,7 +234,17 @@ def participant_registration(request, wave_id):
             print('form', form.data)
             if form.is_valid():
                 participant = form.save(commit=False)
-                print('participant', participant)
+                
+                """ Get the join_order from the latest participant to join and add 1 """
+                last_participant = WaveUser.objects.filter(wave_id=wave_id, user_type=PARTICIPANT).aggregate(Max('join_order'))
+                print('last_participant', last_participant, last_participant["join_order__max"], last_participant["join_order__max"] == 0)
+                
+                if last_participant["join_order__max"] == 0:
+                    join_order = 1
+                else:
+                    join_order = last_participant["join_order__max"] + 1
+                    
+                participant.join_order = join_order
                 participant.save()
                 
                 """ automatically login after registering """

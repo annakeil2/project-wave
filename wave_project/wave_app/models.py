@@ -129,11 +129,7 @@ class WaveUser(AbstractUser):
 
     def __str__(self):
         return f"WaveUser({self.id}, {self.username})"
-    
 
-Participant = WaveUser
-
-Facilitator = WaveUser
 
 
 # class FacilitatorManager(BaseUserManager):
