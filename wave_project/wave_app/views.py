@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Max
 
 from .models import Wave, Bottle, Announcement, WaveUser, FACILITATOR, PARTICIPANT, INPUT_TYPE, PULSE_CHECK, BOTTLE_EXCHANGE
-from .forms import WaveForm, FacilitatorRegistrationForm, ParticipantRegistrationForm, BottleExchangeForm, PulseCheckForm
+from .forms import WaveForm, FacilitatorRegistrationForm, ParticipantRegistrationForm, BottleExchangeForm, PulseCheckForm, FacilitatorAccountForm, ParticipantAccountForm
 from .constants import MY_WAVES_NAME, WAVE_NAME, WAVE_REGISTRATION, WAVE_INPUT_STATUS_API_URL
 from .API import create_wave_QR_code
 
@@ -41,7 +41,8 @@ def my_waves(request):
         return render(request, "wave/my_waves.html", context)
     else:
         return redirect(f"{settings.LOGIN_URL}?next={request.path}")
-    
+
+ 
 def wave_for_participant (request, wave_id):
     if request.user.is_authenticated and request.user.user_type == PARTICIPANT:
         if request.user.wave_id == wave_id:
@@ -180,7 +181,7 @@ def account_details(request):
     if request.user.is_authenticated:
         result = None
         if request.user.user_type == FACILITATOR: 
-            facilitator = Facilitator.objects.get(pk=request.user.id)
+            facilitator = WaveUser.objects.get(pk=request.user.id)
             if request.method == 'POST':
                 form = FacilitatorAccountForm(request.POST, instance=facilitator)
         
@@ -194,7 +195,7 @@ def account_details(request):
                 form = FacilitatorAccountForm(instance=facilitator)
             
         else: 
-            participant = Participant.objects.get(pk=request.user.id)
+            participant = WaveUser.objects.get(pk=request.user.id)
             if request.method == 'POST':
                 form = ParticipantAccountForm(request.POST, instance=participant)
         

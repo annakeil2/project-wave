@@ -155,3 +155,31 @@ class ParticipantRegistrationForm(forms.ModelForm):
         if commit: 
             user.save()
         return user
+    
+
+class FacilitatorAccountForm(forms.ModelForm):
+    """ A form for editing facilitator account details """
+    def __init__(self, *args, **kwargs):
+            """Initialise the form and make the email field required."""
+            super(FacilitatorAccountForm, self).__init__(*args, **kwargs)
+            self.fields['email'].required = True
+            
+    class Meta:
+        model = WaveUser
+    
+        fields = [
+            'first_name',
+            'last_name',
+            'email',
+        ]
+        
+class ParticipantAccountForm(forms.ModelForm):
+    """ A form for editing participant account details """
+    class Meta:
+        model = WaveUser
+    
+        fields = [
+            'first_name',
+            'last_name',
+            'email',
+        ]
