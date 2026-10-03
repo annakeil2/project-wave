@@ -37,55 +37,16 @@ class BottleExchangeForm(forms.ModelForm):
     """ A form for participants to submit their bottled messages """
     form_type = forms.IntegerField(widget=forms.HiddenInput())
     
-    
     def __init__(self, wave_id, sender_id, *args, **kwargs):
-        """ Initialise the form and exclude the sender from the recipient list """
-        wave = Wave.objects.get(pk=wave_id)
-        sender = WaveUser.objects.get(pk=sender_id)
-        recipient_join_order = sender.join_order + wave.bottle_releases + 1
-        print('recipient_join_order', recipient_join_order)
-        all_participants = WaveUser.objects.filter(
-            wave_id=wave_id,
-            user_type=PARTICIPANT
-        )
-        recipient = WaveUser.objects.filter(
-            join_order=recipient_join_order, 
-            wave_id=wave_id,
-            user_type=PARTICIPANT
-        )
-        if recipient.count() == 0:
-            if all_participants.count() < 2:
-                raise "Recipient not found"
-            
-            recipient_join_order = recipient_join_order - all_participants.count()
-            recipient = WaveUser.objects.filter(
-                join_order=recipient_join_order, 
-                wave_id=wave_id,
-                user_type=PARTICIPANT
-            )
-            if recipient.count() == 0:
-                raise "Recipient not found"
-            
-        elif recipient.count() > 1:
-            raise "Multiple Recipients found"
-
-        recipient = recipient.first()
-        print('recipient', recipient)
-
         super(BottleExchangeForm, self).__init__(*args, **kwargs)
-        self.fields['recipient_id'].initial = recipient.id
         self.fields['form_type'].initial = BOTTLE_EXCHANGE
+        
     class Meta:
         model = Bottle
 
         fields = [
             'message',
-            'recipient_id'
         ]
-        
-        widgets = {
-            'recipient_id': forms.HiddenInput(),
-        }
 
 
 class FacilitatorRegistrationForm(forms.ModelForm):

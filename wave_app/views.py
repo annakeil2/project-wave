@@ -13,7 +13,7 @@ from .models import Wave, Bottle, WaveUser, FACILITATOR, PARTICIPANT, INPUT_TYPE
 from .forms import WaveForm, FacilitatorRegistrationForm, ParticipantRegistrationForm, BottleExchangeForm, PulseCheckForm, FacilitatorAccountForm, ParticipantAccountForm
 from .constants import MY_WAVES_NAME, WAVE_NAME, WAVE_REGISTRATION, WAVE_INPUT_STATUS_API_URL
 from .API import create_wave_QR_code
-
+from .exceptions import ViewException
 
 def home_redirect(request):
     """ This allows me to redirect facilitators to my_waves and participants to the wave they belong to """
@@ -46,43 +46,86 @@ def my_waves(request):
 def wave_for_participant (request, wave_id):
     if request.user.is_authenticated and request.user.user_type == PARTICIPANT:
         if request.user.wave_id == wave_id:
-            wave = Wave.objects.get(pk=wave_id)
-            pulse_check_form = PulseCheckForm()
-            bottle_exchange_form = BottleExchangeForm(wave_id=wave_id,sender_id=request.user.id)
-            bottle = None
-            if request.method == 'POST':
-                if int(request.POST['form_type']) == BOTTLE_EXCHANGE:
-                    bottle_exchange_form = BottleExchangeForm(wave_id, request.user.id, request.POST)
-                    if bottle_exchange_form.is_valid():
-                        bottle = bottle_exchange_form.save(commit=False)
-                        bottle.wave_id = wave_id
-                        bottle.sender_id = request.user.id
-                        bottle.input_type = BOTTLE_EXCHANGE
-                        bottle.release_number = wave.bottle_releases + 1
-                        bottle.is_flagged = False
-                        bottle.save()
-                else:
-                    pulse_check_form = PulseCheckForm(request.POST)
-                    if pulse_check_form.is_valid():
-                        pulse_check = pulse_check_form.save(commit=False)
-                        pulse_check.wave_id = wave_id
-                        pulse_check.sender_id = request.user.id
-                        pulse_check.recipient_id = wave.facilitator_id
-                        pulse_check.release_number = 0
-                        pulse_check.input_type = PULSE_CHECK
-                        pulse_check.is_flagged = False
-                        pulse_check.save()
-                        print('pulse_check save. release_number:', pulse_check.release_number)
-            else:
-                bottle = Bottle.objects.filter(sender_id=request.user.id, wave_id=wave_id, input_type=BOTTLE_EXCHANGE).order_by("-release_number", "pk").first()
+            error = None
+            show_bottle_exchange = None
+            received_bottle = None
             
-            show_bottle_exchange = bottle == None or wave.bottle_releases > bottle.release_number
-            received_bottle = Bottle.objects.filter(
-                wave_id=wave_id, 
-                recipient_id=request.user.id, 
-                input_type=BOTTLE_EXCHANGE, 
-                release_number=wave.bottle_releases + 1
-            ).first()
+            try:
+                wave = Wave.objects.get(pk=wave_id)
+                pulse_check_form = PulseCheckForm()
+                bottle_exchange_form = BottleExchangeForm(wave_id=wave_id,sender_id=request.user.id)
+                bottle = None
+                if request.method == 'POST':
+                    if int(request.POST['form_type']) == BOTTLE_EXCHANGE:
+                        bottle_exchange_form = BottleExchangeForm(wave_id, request.user.id, request.POST)
+                        if bottle_exchange_form.is_valid():
+                            sender_id = request.user.id
+                            sender = WaveUser.objects.get(pk=sender_id)
+                            recipient_join_order = sender.join_order + 1
+                            print('recipient_join_order', recipient_join_order)
+                            all_participants = WaveUser.objects.filter(
+                                wave_id=wave_id,
+                                user_type=PARTICIPANT
+                            )
+                            recipient = WaveUser.objects.filter(
+                                join_order=recipient_join_order, 
+                                wave_id=wave_id,
+                                user_type=PARTICIPANT
+                            )
+                            
+                            if recipient.count() == 0:
+                                if all_participants.count() < 2:
+                                    raise ViewException("Recipient not found")
+                                
+                                recipient_join_order = recipient_join_order - all_participants.count()
+                                recipient = WaveUser.objects.filter(
+                                    join_order=recipient_join_order, 
+                                    wave_id=wave_id,
+                                    user_type=PARTICIPANT
+                                )
+                                if recipient.count() == 0:
+                                    raise ViewException("Recipient not found")
+                                
+                            elif recipient.count() > 1:
+                                raise ViewException("Multiple Recipients found")
+                    
+                            recipient = recipient.first()
+                            print('recipient', recipient)
+                        
+                            
+                            bottle = bottle_exchange_form.save(commit=False)
+                            bottle.recipient_id = recipient.id
+                            bottle.wave_id = wave_id
+                            bottle.sender_id = request.user.id
+                            bottle.input_type = BOTTLE_EXCHANGE
+                            bottle.release_number = wave.bottle_releases + 1
+                            bottle.is_flagged = False
+                            bottle.save()
+                    else:
+                        pulse_check_form = PulseCheckForm(request.POST)
+                        if pulse_check_form.is_valid():
+                            pulse_check = pulse_check_form.save(commit=False)
+                            pulse_check.wave_id = wave_id
+                            pulse_check.sender_id = request.user.id
+                            pulse_check.recipient_id = wave.facilitator_id
+                            pulse_check.release_number = 0
+                            pulse_check.input_type = PULSE_CHECK
+                            pulse_check.is_flagged = False
+                            pulse_check.save()
+                            print('pulse_check save. release_number:', pulse_check.release_number)
+                else:
+                    bottle = Bottle.objects.filter(sender_id=request.user.id, wave_id=wave_id, input_type=BOTTLE_EXCHANGE).order_by("-release_number", "pk").first()
+                
+                show_bottle_exchange = bottle == None or wave.bottle_releases > bottle.release_number
+                received_bottle = Bottle.objects.filter(
+                    wave_id=wave_id, 
+                    recipient_id=request.user.id, 
+                    input_type=BOTTLE_EXCHANGE, 
+                    release_number=wave.bottle_releases + 1
+                ).first()
+            except ViewException as e:
+                print('ViewException: ', e)
+                error = str(e)
 
             context = {
                 "wave": wave,
@@ -95,7 +138,9 @@ def wave_for_participant (request, wave_id):
                 "bottle": bottle,
                 "show_bottle_exchange": show_bottle_exchange,
                 "received_bottle": received_bottle,
+                "error": error
             }
+            print('context', context)
             return render(request, "wave/wave_for_participant.html", context)
         else:
             logout(request)
@@ -270,7 +315,7 @@ def participant_registration(request, wave_id):
                 last_participant = WaveUser.objects.filter(wave_id=wave_id, user_type=PARTICIPANT).aggregate(Max('join_order'))
                 print('last_participant', last_participant, last_participant["join_order__max"], last_participant["join_order__max"] == 0)
                 
-                if last_participant["join_order__max"] == 0:
+                if last_participant["join_order__max"] == None or last_participant["join_order__max"] == 0:
                     join_order = 1
                 else:
                     join_order = last_participant["join_order__max"] + 1
