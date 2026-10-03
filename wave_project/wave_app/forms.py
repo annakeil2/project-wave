@@ -172,7 +172,8 @@ class FacilitatorAccountForm(forms.ModelForm):
             'last_name',
             'email',
         ]
-        
+
+
 class ParticipantAccountForm(forms.ModelForm):
     """ A form for editing participant account details """
     class Meta:

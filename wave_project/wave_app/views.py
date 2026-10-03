@@ -293,7 +293,18 @@ def participant_registration(request, wave_id):
         return render(
             request,
             'registration.html',
-            {'form': form, 'result': result, 'user_type': 'Participant'}
+            {
+                'form': form, 
+                'result': result, 
+                'user_type': 'Participant'
+            }
         )
     else:
         return redirect('/')
+    
+
+def resources (request):
+    return render(
+        request,
+        'resources.html',
+    )

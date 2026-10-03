@@ -59,4 +59,5 @@ urlpatterns = [
              template_name='password_reset_complete.html'
          ),
          name='password_reset_complete'), 
+    path('resources/', views.resources, name='resources'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

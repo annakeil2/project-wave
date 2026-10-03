@@ -1,0 +1,47 @@
+<aside class="sidebar">
+
+    <div class="sidebar-header">
+        <div class="logo">
+            <i class="bi bi-water"></i>
+        </div>
+
+        <div>
+            <h5>Training</h5>
+            <small>Management System</small>
+        </div>
+    </div>
+
+    <div class="sidebar-menu">
+
+        <p class="menu-title">MAIN</p>
+
+        {% if user and user.user_type == 1 %}
+            <a href="{% url 'my-waves' %}" class="menu-item">
+                <i class="bi bi-tsunami"></i>
+                <span>My Waves</span>
+            </a>
+
+            <a href="{% url 'resources' %}" class="menu-item">
+                <i class="bi bi-droplet"></i>
+                <span>Resources</span>
+            </a>
+        {% else %}
+            <a href="{% url 'wave' user.wave_id %}" class="menu-item">
+                <i class="bi bi-tsunami"></i>
+                <span>Return to Wave</span>
+            </a>
+        {% endif %}
+        
+
+        {% if user.is_staff %}
+            <p class="menu-title">ADMINISTRATION</p>
+
+            <a href="/admin/" class="menu-item">
+                <i class="bi bi-gear"></i>
+                <span>Administration</span>
+            </a>
+        {% endif %} 
+
+    </div>
+
+</aside>

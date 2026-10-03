@@ -6,6 +6,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 BOTTLE_EXCHANGE = 1
 PULSE_CHECK = 2   
 INPUT_TYPE = {
+    0: 'n/a',
     BOTTLE_EXCHANGE: "Bottle exchange",
     PULSE_CHECK: "Pulse check",
 }

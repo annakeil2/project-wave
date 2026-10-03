@@ -7,7 +7,5 @@ register = template.Library()
 def display_group_size(wave):
     """ Get the group size, i.e. the number of participants of a wave """
     participants = WaveUser.objects.filter(wave_id=wave.id, user_type=PARTICIPANT)
-    
-    # participants = wave.participants.all()
    
     return len(participants)
