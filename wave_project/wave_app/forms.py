@@ -1,5 +1,5 @@
 from django import forms
-from .models import Wave, Bottle, Announcement, WaveUser, BOTTLE_EXCHANGE, PULSE_CHECK, PARTICIPANT, FACILITATOR
+from .models import Wave, Bottle, WaveUser, BOTTLE_EXCHANGE, PULSE_CHECK, PARTICIPANT, FACILITATOR
 
 class WaveForm(forms.ModelForm):
     """ A form for creating and updating waves """
@@ -10,7 +10,6 @@ class WaveForm(forms.ModelForm):
             'wave_name',
             'event_date',
             'input_type',
-            'moderation_type',
         ]
 
         widgets = {

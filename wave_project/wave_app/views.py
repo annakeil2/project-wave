@@ -9,7 +9,7 @@ from django.http import HttpResponseServerError, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Max
 
-from .models import Wave, Bottle, Announcement, WaveUser, FACILITATOR, PARTICIPANT, INPUT_TYPE, PULSE_CHECK, BOTTLE_EXCHANGE
+from .models import Wave, Bottle, WaveUser, FACILITATOR, PARTICIPANT, INPUT_TYPE, PULSE_CHECK, BOTTLE_EXCHANGE
 from .forms import WaveForm, FacilitatorRegistrationForm, ParticipantRegistrationForm, BottleExchangeForm, PulseCheckForm, FacilitatorAccountForm, ParticipantAccountForm
 from .constants import MY_WAVES_NAME, WAVE_NAME, WAVE_REGISTRATION, WAVE_INPUT_STATUS_API_URL
 from .API import create_wave_QR_code

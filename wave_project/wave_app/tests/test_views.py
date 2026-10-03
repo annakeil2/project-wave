@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.test.client import RequestFactory
 
 from wave_app import views 
-from wave_app.models import Wave, WaveUser, FACILITATOR, PARTICIPANT, BOTTLE_EXCHANGE, AI_MODERATION
+from wave_app.models import Wave, WaveUser, FACILITATOR, PARTICIPANT, BOTTLE_EXCHANGE
 
 class ViewsTestCase(TestCase):
     def setUp(self):
@@ -57,13 +57,11 @@ class ViewsTestCase(TestCase):
         expected_wave_name = 'Test'
         expected_event_date = '2026-10-21 19:28:00.000000 +00:00'
         expected_input_type = BOTTLE_EXCHANGE
-        expected_moderation_type = AI_MODERATION
         
-        request = self.rf.post('wave/create_wave/', data={
+        request = self.rf.post(path='wave/create_wave/', data={
             'wave_name': expected_wave_name,
             'event_date': expected_event_date,
             'input_type': expected_input_type,
-            'moderation_type': expected_moderation_type,
         })
         
         """ Logged in as facilitator """
@@ -75,16 +73,16 @@ class ViewsTestCase(TestCase):
         count_before = Wave.objects.all().count()
         
         response = views.create_wave(request)
-        print(response)
+
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, '/wave/my-waves')
         
+        """ Check that there is one more wave after creation """
         count_after = Wave.objects.all().count()
         self.assertEqual(count_before + 1, count_after)
         
         latest_wave = Wave.objects.all().order_by('created_at').first()
         self.assertGreater(latest_wave.id, 0)
         self.assertEqual(latest_wave.wave_name, expected_wave_name)
-        self.assertEqual(latest_wave.event_date, dt.strptime(expected_event_date, "%Y-%m-%d %H:%M:%S.%f %:z"))
+        self.assertEqual(latest_wave.event_date, dt.datetime.strptime(expected_event_date, "%Y-%m-%d %H:%M:%S.%f %z"))
         self.assertEqual(latest_wave.input_type, expected_input_type)
-        self.assertEqual(latest_wave.moderation_type, expected_moderation_type)

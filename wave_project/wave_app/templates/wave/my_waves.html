@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% load display_input_type %}
-{% load display_moderation_type %}
 {% load display_group_size %}
 
 {% block title %}My Wave Dashboard{% endblock %}
@@ -58,7 +57,6 @@ Dashboard
                                 <th>Event Date</th>
                                 <th>Completed</th>
                                 <th>Input Type</th>
-                                <th>Moderation Type</th>
                             </tr>
                         </thead>
 
@@ -88,11 +86,6 @@ Dashboard
                                 <td>
                                     {{ wave.input_type | display_input_type }}
                                 </td>
-
-                                <td>
-                                    {{ wave.moderation_type | display_moderation_type  }}
-                                </td>
-
 
                             </tr>
 
