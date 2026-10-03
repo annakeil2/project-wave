@@ -12,7 +12,7 @@ from django.db.models import Max
 from .models import Wave, Bottle, WaveUser, FACILITATOR, PARTICIPANT, INPUT_TYPE, PULSE_CHECK, BOTTLE_EXCHANGE
 from .forms import WaveForm, FacilitatorRegistrationForm, ParticipantRegistrationForm, BottleExchangeForm, PulseCheckForm, FacilitatorAccountForm, ParticipantAccountForm
 from .constants import MY_WAVES_NAME, WAVE_NAME, WAVE_REGISTRATION, WAVE_INPUT_STATUS_API_URL
-from .API import create_wave_QR_code
+from .API import create_wave_qr_code
 from .exceptions import ViewException
 
 def home_redirect(request):
@@ -155,7 +155,7 @@ def wave_for_presentation(request, wave_id):
         print('wave', wave, wave.input_type)
         if wave.facilitator_id != facilitator_id:
             return redirect(f"{settings.LOGIN_URL}")
-        qr = create_wave_QR_code(request, wave_id)
+        qr = create_wave_qr_code(request, wave_id)
         API_URL = request.scheme + '://' + request.get_host() + reverse(
             WAVE_INPUT_STATUS_API_URL,
         )

@@ -3,7 +3,7 @@ from django.urls import reverse
 import urllib.parse
 import requests
 
-def create_wave_QR_code(request, wave_id):
+def create_wave_qr_code(request, wave_id):
     """ Generate QR code using goqr.me API """
     SIZE = 500
     COLOR = '00f'
