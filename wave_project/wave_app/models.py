@@ -16,16 +16,18 @@ PARTICIPANT = 2
 USER_TYPE = {
     FACILITATOR: "Facilitator",
     PARTICIPANT: "Participant",
+}    
+    
+    
+AI_MODERATION = 1  
+MODERATION_TYPE = {
+    AI_MODERATION: "AI moderation",
 }
 
     
 class Wave(models.Model):
     """A session the facilitator creates"""
-    
-    AI_MODERATION = 1  
-    MODERATION_TYPE = {
-        AI_MODERATION: "AI moderation",
-    }
+
     
     id = models.AutoField(primary_key=True)
     wave_name = models.TextField()

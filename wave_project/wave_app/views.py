@@ -263,7 +263,6 @@ def participant_registration(request, wave_id):
             form.is_staff = False
             form.is_superuser = False
     
-            print('form', form.data)
             if form.is_valid():
                 participant = form.save(commit=False)
                 
