@@ -25,12 +25,40 @@
 </div>
 
 <div class="row align-items-start">
+    
     <div class="col">
-        <button id="pulse_check_button"> Request Pulse Check</button>
+        <button id="pulse_check_button">Enable Pulse Check </button>
+        <button id="end_pulse_check_button">End Pulse Check </button>
     </div>
+
     <div class="col">
-        <button id="bottle_exchange_button"> Enable Bottle Exchange</button>
-    </div> 
+        <button id="bottle_exchange_button">Enable Bottle Exchange</button>
+        <button id="end_bottle_exchange_button">End Bottle Exchange </button>
+    </div>
+    
+
+    <style>
+    {% if wave.input_type == INPUT_TYPE.PULSE_CHECK %}
+        #pulse_check_button {
+            display: none;
+        }
+    {% else %}
+        #end_pulse_check_button {
+            display: none;
+        }
+    {% endif %}
+
+    {% if wave.input_type == INPUT_TYPE.PULSE_CHECK %}
+        #bottle_exchange_button {
+            display: none;
+        }
+    {% else %}
+        #end_bottle_exchange_button {
+            display: none;
+        }
+    {% endif %}
+    </style>
+   
 </div>
 
 <script>
@@ -59,12 +87,31 @@
     }
 
     const pulse_check_button = document.getElementById('pulse_check_button');
-    pulse_check_button.addEventListener("click", (event) => {
-        changeWaveStatus(PULSE_CHECK, WAVE_ID)
-    });
+    const end_pulse_check_button = document.getElementById('end_pulse_check_button');
     const bottle_exchange_button = document.getElementById('bottle_exchange_button');
+    const end_bottle_exchange_button = document.getElementById('end_bottle_exchange_button');
+
+    pulse_check_button.addEventListener("click", (event) => {
+        changeWaveStatus(PULSE_CHECK, WAVE_ID);
+        pulse_check_button.style.display = 'none';
+        end_pulse_check_button.style.display = 'block';
+    });
+    end_pulse_check_button.addEventListener("click", (event) => {
+        changeWaveStatus(0, WAVE_ID);
+        end_pulse_check_button.style.display = 'none';
+        pulse_check_button.style.display = 'block';
+    });
+
+
     bottle_exchange_button.addEventListener("click", (event) => {
-        changeWaveStatus(BOTTLE_EXCHANGE, WAVE_ID)
+        changeWaveStatus(BOTTLE_EXCHANGE, WAVE_ID);
+        bottle_exchange_button.style.display = 'none';
+        end_bottle_exchange_button.style.display = 'block';
+    });
+    end_bottle_exchange_button.addEventListener("click", (event) => {
+        changeWaveStatus(0, WAVE_ID);
+        end_bottle_exchange_button.style.display = 'none';
+        bottle_exchange_button.style.display = 'block';
     });
 
 </script>

@@ -11,14 +11,12 @@ def create_wave_QR_code(request, wave_id):
     FORMAT = 'svg'
     
     wave_url = request.scheme + '://' + request.get_host() + reverse(WAVE_NAME, kwargs={'wave_id': wave_id})
-    print('wave_url', wave_url)
     wave_url_encoded = urllib.parse.quote(wave_url)
     api_url = f'https://api.qrserver.com/v1/create-qr-code/?data={wave_url_encoded}&size={SIZE}&color={COLOR}&margin={MARGIN}&format={FORMAT}'
     try:
         response = requests.get(api_url)
         if response.status_code == 200:
             qr = response.text
-            print('qr result: ', qr)
             replaced = qr.replace('<?xml version="1.0" standalone="no"?>', '')
             return(replaced)
         else:

@@ -106,6 +106,7 @@ def wave_for_presentation(request, wave_id):
     if request.user.is_authenticated and request.user.user_type == FACILITATOR:
         facilitator_id = request.user.id
         wave = Wave.objects.get(pk=wave_id)
+        print('wave', wave, wave.input_type)
         if wave.facilitator_id != facilitator_id:
             return redirect(f"{settings.LOGIN_URL}")
         qr = create_wave_QR_code(request, wave_id)
@@ -113,12 +114,20 @@ def wave_for_presentation(request, wave_id):
             WAVE_INPUT_STATUS_API_URL,
         )
         pulse_checks = Bottle.objects.filter(wave_id=wave_id, input_type=PULSE_CHECK)
+        
+        """ TODO: Fix buttons so we can turn off pulse checks and bottle exchange"""
+        
+        
         context = {
             "facilitator_id": facilitator_id,
             "wave": wave,
             "qr": qr,
             "API_URL": API_URL,
-            "pulse_checks": pulse_checks
+            "pulse_checks": pulse_checks,
+            "INPUT_TYPE": {
+                "BOTTLE_EXCHANGE": BOTTLE_EXCHANGE,
+                "PULSE_CHECK": PULSE_CHECK,
+            },
         }
         return render(request, "wave/wave_for_presentation.html", context)
     else:
