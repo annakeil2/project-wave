@@ -10,6 +10,7 @@ class Command(BaseCommand):
         if not WaveUser.objects.filter(username='anna').exists():
             WaveUser.objects.create_superuser(
                 username='anna',
+                email=os.environ.get('SU_EMAIL'),
                 password=os.environ.get('SU_PASSWORD')
             )
             print('Superuser has been created.')
