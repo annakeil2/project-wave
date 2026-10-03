@@ -14,6 +14,8 @@ A QR code is generated for each wave's participant page, allowing participants t
 
 The application was developed using Django and Bootstrap, with custom HTML, CSS and JavaScript used to create the application's interface and interactive functionality.
 
+Two API solutions have been implemented for this project.
+
 
 ## Features
 

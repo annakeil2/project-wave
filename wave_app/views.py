@@ -12,7 +12,7 @@ from django.db.models import Max
 from .models import Wave, Bottle, WaveUser, FACILITATOR, PARTICIPANT, INPUT_TYPE, PULSE_CHECK, BOTTLE_EXCHANGE
 from .forms import WaveForm, FacilitatorRegistrationForm, ParticipantRegistrationForm, BottleExchangeForm, PulseCheckForm, FacilitatorAccountForm, ParticipantAccountForm
 from .constants import MY_WAVES_NAME, WAVE_NAME, WAVE_REGISTRATION, WAVE_INPUT_STATUS_API_URL
-from .API import create_wave_qr_code
+from .api import create_wave_qr_code
 from .exceptions import ViewException
 
 def home_redirect(request):
@@ -75,7 +75,7 @@ def wave_for_participant (request, wave_id):
                             
                             if recipient.count() == 0:
                                 if all_participants.count() < 2:
-                                    raise ViewException("Recipient not found")
+                                    raise ViewException("Alone in the wave. No other users have joined to send a bottle to.")
                                 
                                 recipient_join_order = recipient_join_order - all_participants.count()
                                 recipient = WaveUser.objects.filter(
@@ -84,10 +84,10 @@ def wave_for_participant (request, wave_id):
                                     user_type=PARTICIPANT
                                 )
                                 if recipient.count() == 0:
-                                    raise ViewException("Recipient not found")
+                                    raise ViewException("Alone in the wave. No other users have joined to send a bottle to.")
                                 
                             elif recipient.count() > 1:
-                                raise ViewException("Multiple Recipients found")
+                                raise ViewException("Multiple Recipients found. Could not send bottle.")
                     
                             recipient = recipient.first()
                             print('recipient', recipient)
@@ -126,6 +126,7 @@ def wave_for_participant (request, wave_id):
             except ViewException as e:
                 print('ViewException: ', e)
                 error = str(e)
+                show_bottle_exchange = True
 
             context = {
                 "wave": wave,
@@ -260,7 +261,7 @@ def account_details(request):
         )
     else:
         return redirect(f"{settings.LOGIN_URL}?next={request.path}")
-    
+
 
 def facilitator_registration(request):
     """ Display the registration form and create a new facilitator account """
@@ -268,12 +269,12 @@ def facilitator_registration(request):
         result = None
         if request.method == 'POST':
             form = FacilitatorRegistrationForm(request.POST)
-    
+  
             if form.is_valid():
                 facilitator = form.save(commit=False)
                 facilitator.join_order = 0
                 facilitator.save()
-                
+             
                 """ automatically login after registering """
                 new_user = authenticate(
                     username=form.cleaned_data['username'],
@@ -281,10 +282,10 @@ def facilitator_registration(request):
                 )
                 login(request, new_user)
                 return redirect(MY_WAVES_NAME)
-        
+       
         else:
             form = FacilitatorRegistrationForm()
-        
+     
         return render(
             request,
             'registration.html',
@@ -292,8 +293,8 @@ def facilitator_registration(request):
         )
     else:
         return redirect('')
-    
-    
+
+ 
 def participant_registration(request, wave_id):
     """ Display the registration form and create a new participant account """
     if request.user.is_authenticated == False and wave_id != None:
@@ -301,16 +302,16 @@ def participant_registration(request, wave_id):
         if request.method == 'POST':
             form = ParticipantRegistrationForm(wave_id, request.POST)
             form.wave_id = wave_id
-            
-            
+        
+    
             form.requested_follow_up = False
             form.user_type = PARTICIPANT
             form.is_staff = False
             form.is_superuser = False
-    
+
             if form.is_valid():
                 participant = form.save(commit=False)
-                
+
                 """ Get the join_order from the latest participant to join and add 1 """
                 last_participant = WaveUser.objects.filter(wave_id=wave_id, user_type=PARTICIPANT).aggregate(Max('join_order'))
                 print('last_participant', last_participant, last_participant["join_order__max"], last_participant["join_order__max"] == 0)
@@ -319,10 +320,10 @@ def participant_registration(request, wave_id):
                     join_order = 1
                 else:
                     join_order = last_participant["join_order__max"] + 1
-                    
+
                 participant.join_order = join_order
                 participant.save()
-                
+
                 """ automatically login after registering """
                 new_user = authenticate(
                     username=form.cleaned_data['username'],
@@ -330,10 +331,10 @@ def participant_registration(request, wave_id):
                 )
                 login(request, new_user)
                 return redirect(WAVE_NAME, wave_id=wave_id)
-        
+
         else:
             form = ParticipantRegistrationForm(wave_id=wave_id)
-        
+
         return render(
             request,
             'registration.html',

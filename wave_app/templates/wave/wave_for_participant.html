@@ -10,6 +10,7 @@
 
 <div class="row align-items-start">
     <div class="col">
+        {% if error != None %}<p>{{ error }}</p>{% endif %}
         {% if wave.input_type == INPUT_TYPE.BOTTLE_EXCHANGE and show_bottle_exchange %}
             <form method="post">
                 {% csrf_token %}
