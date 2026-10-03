@@ -385,3 +385,12 @@ Unit testing in Django proved harder than I expected. There were several problem
 Finding an API to use for AI moderation was unsuccessful. I evaluated 'moderationapi.com', 'cleanmod.dev', and 'openmoderation.com', but all of these were too expensive. I looked into self-hosting KoalaAI/Text-Moderation but the challenges involved were not possible for me to overcome in the time available.
 
 
+## Deployed site
+
+This site has been deployed to GitHub at the URL below:
+
+[https://github.com/annakeil2/project-wave](https://github.com/annakeil2/project-wave)
+
+Link to render.com deployment below:
+
+[https://project-wave-p3id.onrender.com](https://project-wave-p3id.onrender.com)

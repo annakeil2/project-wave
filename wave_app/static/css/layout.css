@@ -240,6 +240,9 @@ body {
     margin-top: 2.5rem
 }
 
+.bottle-image {
+    max-width: 100%;
+}
 
 @media (max-width: 991px) {
 
