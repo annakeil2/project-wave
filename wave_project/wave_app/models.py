@@ -93,12 +93,13 @@ class WaveUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
     
-    def create_user(self, user_type, email, password=None):
+    def create_user(self, username, user_type, email, password=None):
         """ Create a non-super user """
         if not email:
             raise ValueError("You must enter an email address")
 
         user = self.model(
+            username=username,
             email=self.normalize_email(email),
             user_type=user_type, 
             is_staff=False,

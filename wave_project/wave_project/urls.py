@@ -25,7 +25,6 @@ from wave_app.constants import MY_WAVES_NAME, WAVE_NAME, WAVE_PRESENT_NAME, WAVE
 
 urlpatterns = [
     path('', views.home_redirect, name='home'),
-    # path('/', views.home_redirect),
     path('admin/', admin.site.urls),
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
